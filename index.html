@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DREAM IT</title>
+  <!-- Incluir WebMIDIAPIShim para compatibilidad con Safari en iOS -->
+  <script src="https://cdn.jsdelivr.net/npm/webmidiapishim"></script>
+  <script src="https://cdn.jsdelivr.net/npm/webmidi@2"></script>
+  <script src="https://cdn.jsdelivr.net/gh/gasman/jasmid@master/stream.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/gasman/jasmid@master/midifile.js"></script>
+  <style>
+    /* Tus estilos CSS */
+    body {
+      background-color: lightblue; /* Cambia el color de fondo del cuerpo */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: -100vh;
+      width: 300;
+      margin: 0;
+    }
+    #container {
+      text-align: center;
+      border: 6px solid blue;
+      padding: 30px;
+      margin-bottom: -360;
+      width: 350px;
+      background-color: lightblue;
+      color: black;
+      position: relative; /* Agregamos esta propiedad para posicionar la imagen */
+    }
+    #watermark {
+      position: absolute;
+      bottom: 30px;
+      right: 25px;
+      width:300px;
+      opacity: 0.1; /* Establecemos la opacidad al 20% */
+      pointer-events: none; /* Evitamos que la marca de agua interrumpa la interacción con otros elementos */
+    }
+    #fileContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    #fileInputContainer, #midiDeviceSelectContainer, #useBmidContainer, #useAmidContainer, #additionalButtonsContainer, #buyContainer {
+      width: fit-content;
+      margin-top: 10px;
+    }
+    .button {
+      padding: 6px 15px;
+      font-size: 0.8em;
+      color: white;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .button.selected {
+      background-color: green;
+    }
+    .button:not(.selected):not(.control) {
+      background-color: blue;
+    }
+    .button.control:not(.selected) {
+      background-color: gray;
+    }
+    #fileName {
+      margin-top: 10px;
+      font-style: italic;
+      display: block;
+    }
+    #midiDeviceSelect {
+      width: fit-content;
+      max-width: 100%;
+    }
+    h1 {
+      font-size: 4em;
+      color: green;
+      margin-top: -10px;
+    }
+    #buttonsContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #buyButton {
+      padding: 4px 10px;
+      background: linear-gradient(to right, #FF8C00, #FFA500);
+      margin-top: 10px;
+      border-width: 1px;
+    }
+    #buyButton span {
+      font-size: 1em;
+    }
+    #supportText {
+      margin-top: 10px;
+      color: black;
+      font-weight: bold;
+    }
+    #copyright {
+      margin-top: 20px;
+      color: green;
+    }
+    #pianoRollContainer {
+      margin-top: 20px;
+      overflow: hidden; /* Ocultar el desbordamiento */
+      position: relative; /* Establecer posición relativa para el contenedor */
+    }
+    #pianoRollCanvas {
+      border: 1px solid blue;
+      cursor: grab; /* Cambiar el cursor al arrastrar */
+    }
+    #canvasWrapper {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      flex-direction: column; /* Para alinear los botones verticalmente */
+    }
+    #zoomButtonsContainer, #scrollButtonsContainer {
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1 style="margin-bottom: -30px;">DREAM IT</h1>
+    
+    <div id="fileContainer">
+      <div id="fileInputContainer" style="margin-bottom: 10px;">
+        <label for="midiFile" class="button" id="fileButton">Play any MIDI<input type="file" id="midiFile" accept=".mid" style="display:none;"></label>
+      </div>
+      <span id="fileName"></span>
+      <div id="midiDeviceSelectContainer" style="margin-bottom: 20px;">
+        <select id="midiDeviceSelect"></select>
+      </div>
+      <div id="buttonsContainer">
+        <div id="useBmidContainer">
+          <button id="useBmidButton" class="button">Preludio nº1 (Bach)</button>
+        </div>
+        <div id="useAmidContainer">
+          <button id="useAmidButton" class="button">Dream nº1 (Rafael Gimeno)</button>
+        </div>
+        <div id="additionalButtonsContainer">
+          <button id="midiLocalControlOn" class="button control">MIDI Local Control ON</button>
+          <button id="midiLocalControlOff" class="button control">MIDI Local Control OFF</button>
+        </div>
+      </div>
+      <div id="supportText">Support this app:</div>
+      <div id="buyContainer" style="margin-top: 0px;">
+        <button id="buyButton" class="button"><span>🛒 BUY NOW MIDIs for DREAM IT</span></button>
+      </div>
+      <div id="copyright">
+        <a href="https://www.rafaelgimeno.com/" target="_blank" style="color: inherit; text-decoration: none;">© By Rafael Gimeno</a>
+      </div>
+    </div>
+    <div id="canvasWrapper">
+      <div id="pianoRollContainer">
+        <canvas id="pianoRollCanvas" width="330" height="350"></canvas>
+        <!-- Agregar la imagen como marca de agua -->
+        <img id="watermark" src="https://cdn.jsdelivr.net/gh/rafgim/NUEVO@main/mejorr.png">
+      </div>
+<div style="height: 10px;"></div>
+      <div id="zoomButtonsContainer">
+        <button id="zoomInButton" class="button" style="margin-right: 10px;">Zoom +</button>
+        <button id="zoomOutButton" class="button">Zoom -</button>
+      </div>
+<div style="height: 15px;"></div>
+      <div id="scrollButtonsContainer">
+        <button id="scrollUpButton" class="button" style="margin-right: 10px;">Move 👇</button>
+        <button id="scrollDownButton" class="button">Move 👆</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var midiDevices = [];
+      var notesToPlay = [];
+      var currentNoteIndex = 0; // Índice de la nota actual
+      var activeNotes = {};
+      var sustainPedal = false;
+      var lastNoteTime = 0;
+      var canvas; // Referencia al canvas
+      var ctx; // Contexto del canvas
+      var lastMouseDownCoords = { x: 0, y: 0 };
+      var lastCanvasOffset = { x: 0, y: 0 };
+      var isDragging = false;
+      var audioContextStarted = false; // Variable para rastrear si el contexto de audio se ha iniciado
+
+      const SIMULTANEOUS_NOTE_THRESHOLD = 50;
+      let scale = 8; // Escala inicial
+      let verticalScrollAmount = 20; // Cantidad de desplazamiento vertical
+
+      // Función para iniciar el contexto de audio
+      function startAudioContext() {
+        if (!audioContextStarted) {
+          // Iniciar el contexto de audio aquí
+          // Por ejemplo: 
+          var AudioContext = window.AudioContext || window.webkitAudioContext;
+          var audioContext = new AudioContext();
+          audioContextStarted = true;
+        }
+      }
+
+      function populateMIDIDeviceSelect() {
+        var selectElement = document.getElementById('midiDeviceSelect');
+        selectElement.innerHTML = '';
+        midiDevices.forEach(function (device) {
+          var option = document.createElement('option');
+          option.text = device.name;
+          option.value = device.id;
+          selectElement.add(option);
+        });
+      }
+
+      function highlightNotes(noteNumbers) {
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const noteHeight = canvasHeight / 1000; // Altura de cada nota
+        const totalTime = notesToPlay[notesToPlay.length - 1].time;
+
+        // Limpiar el canvas
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+        // Calcular el desplazamiento horizontal para centrar las notas resaltadas
+        const highlightedNotes = noteNumbers.map(noteNumber => {
+          return notesToPlay.find(note => note.noteNumber === noteNumber && note.time >= notesToPlay[currentNoteIndex].time);
+        }).filter(Boolean);
+
+        let xOffset = 0;
+        if (highlightedNotes.length > 0) {
+          const firstHighlightedNote = highlightedNotes[0];
+          const lastHighlightedNote = highlightedNotes[highlightedNotes.length - 1];
+          const highlightedRegionWidth = (lastHighlightedNote.time - firstHighlightedNote.time) * (canvasWidth / totalTime) * scale;
+          xOffset = (canvasWidth / 2) - ((firstHighlightedNote.time * (canvasWidth / totalTime) * scale) + (highlightedRegionWidth / 2));
+        }
+
+        // Dibujar todas las notas
+        notesToPlay.forEach(note => {
+          const x = (note.time * (canvasWidth / totalTime) * scale) + xOffset - lastCanvasOffset.x;
+          const y = canvasHeight - (note.noteNumber * noteHeight * scale) - lastCanvasOffset.y;
+          const width = 0.5 * scale; // Ancho de cada nota (ajustar según se necesite)
+          ctx.fillStyle = 'darkblue'; // Color por defecto para las notas no resaltadas
+          ctx.fillRect(x, y, width, noteHeight * scale);
+        });
+
+        // Resaltar las notas reproducidas en rojo
+        highlightedNotes.forEach(note => {
+          const x = (note.time * (canvasWidth / totalTime) * scale) + xOffset - lastCanvasOffset.x;
+          const y = canvasHeight - (note.noteNumber * noteHeight * scale) - lastCanvasOffset.y;
+          const width = 0.5 * scale; // Ancho de cada nota (ajustar según se necesite)
+          ctx.fillStyle = 'red'; // Color rojo para la nota pulsada
+          ctx.fillRect(x, y, width, noteHeight * scale);
+        });
+      }
+
+      WebMidi.enable(function (err) {
+        if (err) {
+          console.error('Web MIDI is not enabled:', err);
+          return;
+        }
+        
+        midiDevices = WebMidi.outputs;
+        populateMIDIDeviceSelect();
+
+        midiDevices.forEach(output => {
+          output.sendProgramChange(0, 1);
+        });
+
+        WebMidi.inputs.forEach(function(input) {
+          input.addListener('noteon', "all", function(e) {
+            startAudioContext(); // Iniciar el contexto de audio al primer clic
+            var triggeredVelocity = e.velocity;
+            var currentTime = new Date().getTime();
+            if (currentTime - lastNoteTime < SIMULTANEOUS_NOTE_THRESHOLD) {
+              triggeredVelocity = Math.max(triggeredVelocity, 0.8); // Reduce la probabilidad de doble golpe
+            }
+            lastNoteTime = currentTime;
+            activeNotes[e.note.number] = true;
+            if (sustainPedal) return;
+            output.playNote(e.note.number, 'all', { velocity: triggeredVelocity });
+            highlightNotes(Object.keys(activeNotes).map(Number)); // Resaltar las notas activas
+          });
+
+          input.addListener('noteoff', "all", function(e) {
+            delete activeNotes[e.note.number];
+            if (sustainPedal) return;
+            output.stopNote(e.note.number, 'all');
+            highlightNotes(Object.keys(activeNotes).map(Number)); // Resaltar las notas activas
+          });
+
+          input.addListener('controlchange', '64', function(e) {
+            sustainPedal = e.value > 63;
+            if (!sustainPedal) {
+              Object.keys(activeNotes).forEach(noteNumber => {
+                output.stopNote(parseInt(noteNumber), 'all');
+                delete activeNotes[noteNumber];
+              });
+            }
+          });
+        });
+
+        document.getElementById('midiDeviceSelect').addEventListener('change', function() {
+          output = WebMidi.getOutputById(this.value);
+        });
+
+        document.getElementById('midiLocalControlOn').addEventListener('click', function() {
+          WebMidi.globalChannelVolume = 0;
+        });
+
+        document.getElementById('midiLocalControlOff').addEventListener('click', function() {
+          WebMidi.globalChannelVolume = 1;
+        });
+      });
+
+      document.getElementById('midiFile').addEventListener('change', function() {
+        var file = this.files[0];
+        var reader = new FileReader();
+        reader.onload = function() {
+          var binaryString = this.result;
+          var midiFile = new MIDIFile(binaryString);
+          var parsedMidi = midiFile.parse();
+          notesToPlay = parsedMidi.tracks.reduce((accumulator, track) => accumulator.concat(track.notes), []);
+          const canvasWidth = canvas.width;
+          const canvasHeight = canvas.height;
+          const noteHeight = canvasHeight / 1000; // Altura de cada nota
+          const totalTime = notesToPlay[notesToPlay.length - 1].time;
+          ctx.clearRect(0, 0, canvasWidth, canvasHeight); // Limpiar el canvas
+          notesToPlay.forEach(note => {
+            const x = note.time * (canvasWidth / totalTime);
+            const y = canvasHeight - (note.noteNumber * noteHeight);
+            const width = 0.5; // Ancho de cada nota (ajustar según se necesite)
+            ctx.fillStyle = 'blue'; // Color azul para todas las notas
+            ctx.fillRect(x, y, width, noteHeight);
+          });
+        };
+        reader.readAsBinaryString(file);
+        document.getElementById('fileName').textContent = 'Selected file: ' + file.name;
+      });
+
+      // Listener para el botón "Preludio nº1 (Bach)"
+      document.getElementById('useBmidButton').addEventListener('click', function() {
+        // Cambiar la acción según se necesite
+        // Por ejemplo:
+        fetch('https://cdn.jsdelivr.net/gh/rafgim/NUEVO@main/1.mid')
+          .then(response => response.arrayBuffer())
+          .then(buffer => {
+            var binaryString = String.fromCharCode.apply(null, new Uint8Array(buffer));
+            var midiFile = new MIDIFile(binaryString);
+            var parsedMidi = midiFile.parse();
+            notesToPlay = parsedMidi.tracks.reduce((accumulator, track) => accumulator.concat(track.notes), []);
+            highlightNotes([]);
+          });
+      });
+
+      // Listener para el botón "Dream nº1 (Rafael Gimeno)"
+      document.getElementById('useAmidButton').addEventListener('click', function() {
+        // Cambiar la acción según se necesite
+        // Por ejemplo:
+        fetch('https://cdn.jsdelivr.net/gh/rafgim/NUEVO@main/2.mid')
+          .then(response => response.arrayBuffer())
+          .then(buffer => {
+            var binaryString = String.fromCharCode.apply(null, new Uint8Array(buffer));
+            var midiFile = new MIDIFile(binaryString);
+            var parsedMidi = midiFile.parse();
+            notesToPlay = parsedMidi.tracks.reduce((accumulator, track) => accumulator.concat(track.notes), []);
+            highlightNotes([]);
+          });
+      });
+
+      // Obtener el canvas y su contexto
+      canvas = document.getElementById('pianoRollCanvas');
+      ctx = canvas.getContext('2d');
+
+      // Listeners para el zoom
+      document.getElementById('zoomInButton').addEventListener('click', function() {
+        if (scale < 16) {
+          scale *= 2;
+          highlightNotes(Object.keys(activeNotes).map(Number));
+        }
+      });
+
+      document.getElementById('zoomOutButton').addEventListener('click', function() {
+        if (scale > 1) {
+          scale /= 2;
+          highlightNotes(Object.keys(activeNotes).map(Number));
+        }
+      });
+
+      // Listeners para el desplazamiento vertical
+      document.getElementById('scrollUpButton').addEventListener('click', function() {
+        lastCanvasOffset.y += verticalScrollAmount;
+        highlightNotes(Object.keys(activeNotes).map(Number));
+      });
+
+      document.getElementById('scrollDownButton').addEventListener('click', function() {
+        lastCanvasOffset.y -= verticalScrollAmount;
+        highlightNotes(Object.keys(activeNotes).map(Number));
+      });
+
+      // Listeners para el movimiento de arrastre del canvas
+      canvas.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        lastMouseDownCoords = { x: e.clientX, y: e.clientY };
+      });
+
+      canvas.addEventListener('mouseup', function() {
+        isDragging = false;
+      });
+
+      canvas.addEventListener('mousemove', function(e) {
+        if (isDragging) {
+          lastCanvasOffset.x += (e.clientX - lastMouseDownCoords.x);
+          lastCanvasOffset.y += (e.clientY - lastMouseDownCoords.y);
+          lastMouseDownCoords = { x: e.clientX, y: e.clientY };
+          highlightNotes(Object.keys(activeNotes).map(Number));
+        }
+      });
+    });
+  </script>
+</body>
+</html>
