@@ -390,7 +390,7 @@
       if (cursorEl) {
         let rect = cursorEl.getBoundingClientRect();
         let cursorCenter = rect.top + rect.height / 2;
-        let viewportTarget = window.innerHeight * 0.6;
+        let viewportTarget = window.innerHeight * 0.7;
         let diff = cursorCenter - viewportTarget;
         if (Math.abs(diff) > 20) {
           window.scrollBy({ top: diff, behavior: 'smooth' });
