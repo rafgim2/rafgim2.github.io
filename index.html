@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>DREAM IT by Rafael Gimeno</title>
+  <!-- Se incluye JSZip para descomprimir archivos MXL -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay@latest/build/opensheetmusicdisplay.min.js"></script>
+  <style>
+    /* Cabecera fija */
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 120px;
+      background-color: #add8e6;
+      border-bottom: 4px solid #00008B;
+      z-index: 1000;
+      box-sizing: border-box;
+      padding: 10px 20px;
+    }
+    #header h1 {
+      margin: 0;
+      font-size: 3em;
+      font-family: Segoe UI Black, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      color: #00008B;
+      text-align: center;
+      line-height: 1.2;
+      text-decoration: underline;
+    }
+    /* Subtítulo e información MIDI */
+    .subheader {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 5px;
+      position: relative;
+    }
+    .subheader h2 {
+      margin: 0;
+      font-size: 1em;
+      font-family: "Times New Roman", Times, serif;
+      color: #000000;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .subheader h2 a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .subheader h2 a:hover {
+      text-decoration: underline;
+    }
+    #midiInfo {
+      position: absolute;
+      right: 0;
+      font-family: sans-serif;
+      font-size: 0.9em;
+      color: #000000;
+    }
+    /* Contenedor fijo de controles (botones) */
+    .controls {
+      position: fixed;
+      top: 120px;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: #add8e6;
+      border-bottom: 2px solid #00008B;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 900;
+      box-sizing: border-box;
+    }
+    .left-control {
+      position: absolute;
+      left: 20px;
+    }
+    .right-control {
+      position: absolute;
+      right: 20px;
+    }
+    .middle-control {
+      text-align: center;
+    }
+    #fileLabel {
+      padding: 8px 12px;
+      background-color: green;
+      color: white;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      font-family: sans-serif;
+      border-radius: 8px;
+    }
+    /* Se aceptan .xml, .musicxml y .mxl */
+    #fileInput {
+      display: none;
+    }
+    .middle-control button {
+      margin: 0 10px;
+      padding: 8px 12px;
+      border: none;
+      cursor: pointer;
+      font-family: sans-serif;
+      color: white;
+      border-radius: 8px;
+      background-color: dodgerblue;
+    }
+    #toggleLocal {
+      padding: 8px 12px;
+      border: none;
+      cursor: pointer;
+      font-family: sans-serif;
+      color: white;
+      border-radius: 8px;
+    }
+    /* Contenedor de la partitura */
+    #score {
+      border: 4px solid #00008B;
+      margin: 200px auto 20px;
+      min-height: 600px;
+      width: 90%;
+      background-color: white;
+    }
+  </style>
+</head>
+<body>
+  <!-- Cabecera fija -->
+  <div id="header">
+    <h1>DREAM IT</h1>
+    <div class="subheader">
+      <h2>
+        © <a href="https://www.youtube.com/@rafgim" target="_blank">by Rafael Gimeno</a>
+      </h2>
+      <div id="midiInfo">Dispositivo MIDI: No detectado</div>
+    </div>
+  </div>
+  
+  <!-- Contenedor fijo de controles -->
+  <div class="controls">
+    <div class="left-control">
+      <label id="fileLabel" for="fileInput">Elegir archivo .musicxml / .mxl</label>
+      <input type="file" id="fileInput" accept=".xml,.musicxml,.mxl">
+    </div>
+    <div class="middle-control">
+      <button id="btnRetroceder">◀ Retroceder</button>
+      <button id="btnAvanzar">Avanzar ▶</button>
+    </div>
+    <div class="right-control">
+      <button id="toggleLocal">MIDI Local Control: OFF</button>
+    </div>
+  </div>
+  
+  <!-- Contenedor de la partitura -->
+  <div id="score"></div>
+  
+  <script>
+    let osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay("score", { drawingParameters: "default" });
+    let scoreEvents = [];
+    let currentEventIndex = 0;
+    let midiOutput = null;
+    let activeTiedNotes = new Set();
+    let midiBuffer = new Set();
+    let lastNoteTime = 0;
+    const NOTE_GROUPING_TIME = 50;
+    
+    let sustainPedalActive = false;
+    let activeScoreEvents = [];
+    let localControlEnabled = false;
+    
+    function updateLocalControl() {
+      const btn = document.getElementById("toggleLocal");
+      if (localControlEnabled) {
+        btn.textContent = "MIDI Local Control: ON";
+        btn.style.backgroundColor = "green";
+        if (midiOutput) {
+          try {
+            midiOutput.send([0xB0, 122, 127]); // CC122 ON
+          } catch (err) {
+            console.error("Error enviando mensaje MIDI para activar control local:", err);
+            document.getElementById("midiInfo").textContent = "Dispositivo MIDI: NO VALIDO";
+            document.getElementById("midiInfo").style.color = "red";
+          }
+        }
+      } else {
+        btn.textContent = "MIDI Local Control: OFF";
+        btn.style.backgroundColor = "red";
+        if (midiOutput) {
+          try {
+            midiOutput.send([0xB0, 122, 0]); // CC122 OFF
+          } catch (err) {
+            console.error("Error enviando mensaje MIDI para desactivar control local:", err);
+            document.getElementById("midiInfo").textContent = "Dispositivo MIDI: NO VALIDO";
+            document.getElementById("midiInfo").style.color = "red";
+          }
+        }
+      }
+    }
+    
+    document.getElementById("toggleLocal").addEventListener("click", function() {
+      localControlEnabled = !localControlEnabled;
+      updateLocalControl();
+    });
+    updateLocalControl();
+    
+    async function loadAndRender(musicXML) {
+      try {
+        console.log("Cargando MusicXML...");
+        await osmd.load(musicXML);
+        osmd.render();
+        console.log("Partitura renderizada correctamente.");
+        osmd.cursor.reset();
+        osmd.cursor.show();
+        
+        setTimeout(() => {
+          console.log("Extrayendo eventos...");
+          extractScoreEvents();
+          addMeasureClickListeners();
+        }, 1000);
+      } catch (error) {
+        console.error("Error al cargar/renderizar el MusicXML:", error);
+      }
+    }
+    
+    // Gestión de archivos: si es MXL se descomprime y se extrae el XML; si no, se procesa normalmente.
+    document.getElementById("fileInput").addEventListener("change", function(e) {
+      let file = e.target.files[0];
+      if (!file) return;
+      const fileName = file.name.toLowerCase();
+      if (fileName.endsWith(".mxl")) {
+        console.log("Archivo MXL detectado.");
+        let reader = new FileReader();
+        reader.onload = function(e) {
+          JSZip.loadAsync(e.target.result)
+            .then(zip => {
+              console.log("Archivo MXL descomprimido. Archivos encontrados:", Object.keys(zip.files));
+              // Primero, intenta leer "META-INF/container.xml"
+              if(zip.files["META-INF/container.xml"]) {
+                return zip.file("META-INF/container.xml").async("string")
+                  .then(containerXML => {
+                    console.log("container.xml leído:", containerXML.substring(0,200));
+                    let parser = new DOMParser();
+                    let xmlDoc = parser.parseFromString(containerXML, "application/xml");
+                    let rootfileElement = xmlDoc.querySelector("rootfile");
+                    if(rootfileElement) {
+                      let fullPath = rootfileElement.getAttribute("full-path");
+                      console.log("Archivo principal indicado en container.xml:", fullPath);
+                      return zip.file(fullPath).async("string");
+                    } else {
+                      console.error("No se encontró elemento rootfile en container.xml");
+                      throw new Error("No se encontró elemento rootfile en container.xml");
+                    }
+                  });
+              } else {
+                // Si no existe container.xml, busca el primer archivo XML
+                let xmlFile = null;
+                for (let filename in zip.files) {
+                  if (filename.toLowerCase().endsWith(".xml") || filename.toLowerCase().endsWith(".musicxml")) {
+                    xmlFile = filename;
+                    break;
+                  }
+                }
+                if (xmlFile) {
+                  console.log("Archivo XML encontrado en el MXL:", xmlFile);
+                  return zip.file(xmlFile).async("string");
+                } else {
+                  throw new Error("No se encontró ningún archivo XML dentro del MXL.");
+                }
+              }
+            })
+            .then(musicXML => {
+              currentEventIndex = 0;
+              loadAndRender(musicXML);
+            })
+            .catch(err => {
+              console.error("Error al descomprimir el archivo MXL:", err);
+            });
+        };
+        reader.readAsArrayBuffer(file);
+      } else { // .xml o .musicxml
+        let reader = new FileReader();
+        reader.onload = function(e) {
+          let musicXML = e.target.result;
+          currentEventIndex = 0;
+          loadAndRender(musicXML);
+        };
+        reader.readAsText(file);
+      }
+    });
+    
+    // Función que extrae los eventos (compases) de la partitura.
+    // Se gestionan ligaduras únicamente basadas en note.NoteTie (ignorando slurs)
+    function extractScoreEvents() {
+      scoreEvents = [];
+      if (!osmd.sheet || !osmd.sheet.sourceMeasures || osmd.sheet.sourceMeasures.length === 0) {
+        console.warn("No se encontraron compases en osmd.sheet.");
+        return;
+      }
+      osmd.sheet.sourceMeasures.forEach((measure, mIndex) => {
+        measure.verticalSourceStaffEntryContainers.forEach((verticalEntry) => {
+          let rightHandPitches = [];
+          let leftHandPitches = [];
+          verticalEntry.staffEntries.forEach((staffEntry, staffIndex) => {
+            staffEntry.voiceEntries.forEach(ve => {
+              ve.notes.forEach(note => {
+                let midi = getMidiPitch(note);
+                if (midi !== undefined) {
+                  let isTied = note.NoteTie;
+                  if (isTied) {
+                    if (activeTiedNotes.has(midi)) {
+                      activeTiedNotes.delete(midi);
+                    } else {
+                      activeTiedNotes.add(midi);
+                      (staffIndex === 0 ? rightHandPitches : leftHandPitches).push(midi);
+                    }
+                  } else {
+                    (staffIndex === 0 ? rightHandPitches : leftHandPitches).push(midi);
+                  }
+                }
+              });
+            });
+          });
+          if (rightHandPitches.length > 0 || leftHandPitches.length > 0) {
+            scoreEvents.push({ measure: mIndex, rightHandPitches, leftHandPitches });
+          }
+        });
+      });
+      console.log("scoreEvents:", scoreEvents);
+    }
+    
+    function getMidiPitch(note) {
+      return note.pitch && note.pitch.halfTone !== undefined ? note.pitch.halfTone + 12 : undefined;
+    }
+    
+    // Añade listeners a los compases para mover el cursor al hacer clic.
+    function addMeasureClickListeners() {
+      const measureElements = document.querySelectorAll("g.vf-measure[id]");
+      console.log("Encontrados", measureElements.length, "compases con 'id'.");
+      
+      // Calculamos el número mínimo mostrado en los IDs para saber si comienzan en 0 o en 1.
+      const measureNumbers = Array.from(measureElements).map(me =>
+        parseInt(me.getAttribute("id").replace(/\D/g, ""), 10)
+      );
+      const startsAtZero = Math.min(...measureNumbers) === 0;
+      console.log("Los números de compás empiezan en", startsAtZero ? "0" : "1");
+  
+      measureElements.forEach((measureEl) => {
+        measureEl.style.cursor = "pointer";
+        measureEl.addEventListener("click", () => {
+          const measureId = measureEl.getAttribute("id");
+          console.log("Clic en compás con ID:", measureId);
+          const parsedNumber = parseInt(measureId.replace(/\D/g, ""), 10);
+          // Si los números mostrados empiezan en 0, usamos el número tal cual; si no, restamos 1.
+          const targetMeasure = startsAtZero ? parsedNumber : parsedNumber - 1;
+          console.log("Compás mapeado a índice:", targetMeasure);
+          
+          let foundIndex = scoreEvents.findIndex(ev => ev.measure === targetMeasure);
+          if (foundIndex !== -1) {
+            currentEventIndex = foundIndex;
+            updateCursorPosition(currentEventIndex);
+            requestAnimationFrame(performScrollUpdate);
+          } else {
+            console.warn("No se encontró un evento para el compás con ID:", measureId);
+          }
+        });
+      });
+    }
+    
+    // Actualiza la posición interna del cursor sin efectuar scroll.
+    function updateCursorPosition(index) {
+      osmd.cursor.reset();
+      for (let i = 0; i < index; i++) {
+        osmd.cursor.next();
+      }
+      console.log("Cursor actualizado a índice:", index);
+    }
+    
+    // Realiza el scroll de la vista de forma asíncrona.
+    function performScrollUpdate() {
+      let cursorEl = osmd.cursor.cursorElement || document.querySelector('.osmd-cursor');
+      if (cursorEl) {
+        let rect = cursorEl.getBoundingClientRect();
+        let cursorCenter = rect.top + rect.height / 2;
+        let viewportTarget = window.innerHeight * 0.6;
+        let diff = cursorCenter - viewportTarget;
+        if (Math.abs(diff) > 20) {
+          window.scrollBy({ top: diff, behavior: 'smooth' });
+        }
+      }
+    }
+    
+    // Botones de avanzar y retroceder
+    document.getElementById("btnAvanzar").addEventListener("click", () => {
+      if (currentEventIndex < scoreEvents.length - 1) {
+        currentEventIndex++;
+        updateCursorPosition(currentEventIndex);
+        requestAnimationFrame(performScrollUpdate);
+      }
+    });
+    
+    document.getElementById("btnRetroceder").addEventListener("click", () => {
+      if (currentEventIndex > 0) {
+        currentEventIndex--;
+        updateCursorPosition(currentEventIndex);
+        requestAnimationFrame(performScrollUpdate);
+      }
+    });
+    
+    // Reproducción vía dispositivo MIDI: actualiza el cursor y agenda scroll asíncrono.
+    function triggerScoreEvent(velocity) {
+      if (currentEventIndex >= scoreEvents.length) return;
+      let ev = scoreEvents[currentEventIndex];
+      let physicalKeys = Array.from(midiBuffer);
+      
+      if (ev.rightHandPitches.length > 0) {
+        activeScoreEvents.push({
+          physicalKeys: physicalKeys.slice(),
+          scoreNotes: ev.rightHandPitches.slice(),
+          hand: "right",
+          pendingRelease: false
+        });
+        let rightHandVelocity = Math.min(127, velocity * 1.1);
+        ev.rightHandPitches.forEach(midi => {
+          if (midiOutput) midiOutput.send([0x90, midi, rightHandVelocity]);
+        });
+      }
+      if (ev.leftHandPitches.length > 0) {
+        activeScoreEvents.push({
+          physicalKeys: physicalKeys.slice(),
+          scoreNotes: ev.leftHandPitches.slice(),
+          hand: "left",
+          pendingRelease: false
+        });
+        ev.leftHandPitches.forEach(midi => {
+          if (midiOutput) midiOutput.send([0x90, midi, velocity]);
+        });
+      }
+      osmd.cursor.next();
+      console.log("Cursor avanzado vía MIDI.");
+      currentEventIndex++;
+      requestAnimationFrame(performScrollUpdate);
+      midiBuffer.clear();
+    }
+    
+    // Inicializa acceso MIDI
+    function onMIDISuccess(midiAccess) {
+      let foundOutput = false;
+      for (let output of midiAccess.outputs.values()) {
+        midiOutput = output;
+        document.getElementById("midiInfo").innerText = "Dispositivo MIDI: " + output.name;
+        updateLocalControl();
+        foundOutput = true;
+        break;
+      }
+      if (!foundOutput) {
+        document.getElementById("midiInfo").textContent = "Dispositivo MIDI: NO VALIDO";
+        document.getElementById("midiInfo").style.color = "red";
+      }
+      for (let input of midiAccess.inputs.values()) {
+        input.onmidimessage = handleMIDIMessage;
+      }
+    }
+    
+    // Maneja mensajes MIDI entrantes.
+    function handleMIDIMessage(event) {
+      let [command, data1, data2] = event.data;
+      let now = performance.now();
+      
+      // Pedal de sustain
+      if ((command & 0xF0) === 0xB0 && data1 === 64) {
+        if (data2 >= 64) {
+          sustainPedalActive = true;
+          console.log("Pedal de sustain activado.");
+        } else {
+          sustainPedalActive = false;
+          console.log("Pedal de sustain liberado.");
+          activeScoreEvents.forEach(eventObj => {
+            if (eventObj.pendingRelease && eventObj.physicalKeys.length === 0) {
+              eventObj.scoreNotes.forEach(scoreNote => {
+                if (midiOutput) midiOutput.send([0x80, scoreNote, 0]);
+              });
+              eventObj.pendingRelease = false;
+            }
+          });
+          activeScoreEvents = activeScoreEvents.filter(evObj => evObj.physicalKeys.length > 0);
+        }
+        return;
+      }
+      
+      // Note On
+      if (command === 0x90 && data2 > 0) {
+        midiBuffer.add(data1);
+        if (now - lastNoteTime > NOTE_GROUPING_TIME) {
+          setTimeout(() => {
+            if (midiBuffer.size > 0) {
+              triggerScoreEvent(data2);
+            }
+          }, NOTE_GROUPING_TIME);
+        }
+        lastNoteTime = now;
+      }
+      // Note Off
+      else if (command === 0x80 || (command === 0x90 && data2 === 0)) {
+        activeScoreEvents.forEach(eventObj => {
+          if (eventObj.physicalKeys.includes(data1)) {
+            eventObj.physicalKeys = eventObj.physicalKeys.filter(n => n !== data1);
+            if (eventObj.physicalKeys.length === 0) {
+              if (sustainPedalActive) {
+                eventObj.pendingRelease = true;
+              } else {
+                eventObj.scoreNotes.forEach(scoreNote => {
+                  if (midiOutput) midiOutput.send([0x80, scoreNote, 0]);
+                });
+              }
+            }
+          }
+        });
+        activeScoreEvents = activeScoreEvents.filter(evObj => evObj.physicalKeys.length > 0 || evObj.pendingRelease);
+      }
+    }
+    
+    if (navigator.requestMIDIAccess) {
+      navigator.requestMIDIAccess({ sysex: false }).then(onMIDISuccess);
+    }
+    
+    // Carga la partitura por defecto al iniciar
+    document.addEventListener("DOMContentLoaded", () => {
+      fetch("https://cdn.jsdelivr.net/gh/rafgim/NUEVO@main/Red%20Threads%208.musicxml")
+        .then(response => response.text())
+        .then(musicXML => {
+          currentEventIndex = 0;
+          loadAndRender(musicXML);
+        })
+        .catch(error => console.error("Error al cargar la partitura por defecto:", error));
+    });
+  </script>
+</body>
+</html>
