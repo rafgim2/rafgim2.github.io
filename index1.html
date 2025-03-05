@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>DREAM IT by Rafael Gimeno</title>
+  <!-- Se incluye JSZip para descomprimir archivos MXL -->
+  <script src="https://cdn.jsdelivr.net/npm/webmidiapishim@1.0.7/dist/shim.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay@latest/build/opensheetmusicdisplay.min.js"></script>
+  <style>
+    /* Cabecera fija */
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #add8e6;
+      border-bottom: 4px solid #00008B;
+      z-index: 1000;
+      box-sizing: border-box;
+      padding: 10px 20px;
+    }
+    #header h1 {
+      margin: 0;
+      font-size: 3em;
+      font-family: Segoe UI Black, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      color: #00008B;
+      text-align: center;
+      line-height: 1.2;
+      text-decoration: underline;
+    }
+    /* Contenedor para cambio de idioma (banderitas) */
+    #langSwitcher {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+    }
+    #langSwitcher button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+    /* Se fija el tamaño de ambas banderitas */
+    #langSwitcher img {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+    /* Ajuste específico para la bandera de España (achatada) */
+    #btn_es img {
+      transform: scaleY(0.8);
+      transform-origin: center;
+    }
+    /* Subcabecera con tres secciones: izquierda, centro y derecha */
+    .subheader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      position: relative;
+    }
+    /* Contenedor izquierdo: botón de sonido arriba y marcador debajo */
+    .left-side {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    /* Contenedor central: "by Rafael Gimeno" centrado */
+    .center-side {
+      position: absolute;
+      margin-top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: "Times New Roman", Times, serif;
+      font-size: 1em;
+      color: #000000;
+      text-align: center;
+    }
+    .center-side a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .center-side a:hover {
+      text-decoration: underline;
+    }
+    /* Contenedor derecho: información MIDI */
+    .right-side {
+      margin-top: 20px;
+      font-family: sans-serif;
+      font-size: 0.9em;
+      color: #000000;
+      text-align: right;
+    }
+    /* Botón de sonido de error */
+    #toggleErrorSound {
+      margin-top: -20px;
+      padding: 8px 12px;
+      border: none;
+      cursor: pointer;
+      font-family: sans-serif;
+      color: white;
+      border-radius: 8px;
+      background-color: red;
+      display: inline-block;
+      align-self: flex-start;
+      width: auto;
+    }
+    /* Marcador de aciertos y errores */
+    #scoreboard {
+      padding: 8px 12px;
+      background-color: green;
+      color: white;
+      border: 1px solid #ccc;
+      font-family: sans-serif;
+      border-radius: 8px;
+      font-size: 1em;
+    }
+    /* Contenedor fijo de controles */
+    .controls {
+      margin-top: 20px;
+      position: fixed;
+      top: 120px;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: #add8e6;
+      border-bottom: 2px solid #00008B;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 900;
+      box-sizing: border-box;
+    }
+    .left-control { position: absolute; left: 20px; }
+    .right-control { position: absolute; right: 20px; }
+    .middle-control { text-align: center; }
+    #fileLabel {
+      padding: 8px 12px;
+      background-color: green;
+      color: white;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      font-family: sans-serif;
+      border-radius: 8px;
+    }
+    /* Input oculto para archivos */
+    #fileInput { display: none; }
+    .middle-control button {
+      margin-top: 20px;
+      margin: 20px 5px;
+      padding: 8px 12px;
+      border: none;
+      cursor: pointer;
+      font-family: sans-serif;
+      color: white;
+      border-radius: 8px;
+      background-color: dodgerblue;
+    }
+    #toggleLocal {
+      margin-top: 0px;
+      padding: 8px 12px;
+      border: none;
+      cursor: pointer;
+      font-family: sans-serif;
+      color: white;
+      border-radius: 8px;
+    }
+    /* Contenedor de la partitura con transformación CSS para zoom menor */
+    #score {
+      border: 4px solid #00008B;
+      margin: 200px auto 20px;
+      min-height: 600px;
+      width: 90%;
+      background-color: white;
+      transform: scale(0.8);
+      transform-origin: top center;
+    }
+    /* Overlay final centrado en la pantalla */
+    #finalMessage {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      max-width: 600px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.9);
+      color: #fff;
+      font-family: sans-serif;
+      font-size: 1.8em;
+      text-align: center;
+      border: 4px solid #00008B;
+      border-radius: 8px;
+      z-index: 3000;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Cabecera fija -->
+  <div id="header">
+    <h1>DREAM IT</h1>
+    <!-- Botones de cambio de idioma con imágenes de banderitas -->
+    <div id="langSwitcher">
+      <button id="btn_es">
+        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/9/9a/Flag_of_Spain.svg/32px-Flag_of_Spain.svg.png" alt="Español">
+      </button>
+      <button id="btn_en">
+        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/Flag_of_the_United_Kingdom.svg/32px-Flag_of_the_United_Kingdom.svg.png" alt="English">
+      </button>
+    </div>
+    <div class="subheader">
+      <div class="left-side">
+        <button id="toggleErrorSound" style="background-color: red;">Sonido error: OFF</button>
+        <div id="scoreboard">ACIERTOS: 0 | ERRORES: 0</div>
+      </div>
+      <div class="center-side">
+        © <a href="https://www.youtube.com/@rafgim" target="_blank">by Rafael Gimeno</a>
+      </div>
+      <div class="right-side">
+        <div id="midiInfo">Dispositivo MIDI: No detectado</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Contenedor fijo de controles -->
+  <div class="controls">
+    <div class="left-control">
+      <label id="fileLabel" for="fileInput">Elegir archivo .musicxml / .mxl</label>
+      <input type="file" id="fileInput" accept=".xml,.musicxml,.mxl">
+    </div>
+    <div class="middle-control">
+      <button id="btnRetroceder">◀ Retroceder</button>
+      <button id="btnAvanzar">▶ Avanzar</button>
+    </div>
+    <div class="right-control">
+      <button id="toggleLocal">MIDI Local Control: OFF</button>
+    </div>
+  </div>
+  
+  <!-- Contenedor de la partitura -->
+  <div id="score"></div>
+  
+  <!-- Overlay para el mensaje final -->
+  <div id="finalMessage"></div>
+  
+  <script>
+    // Variables globales para traducción y control del juego
+    let currentLanguage = 'es'; // 'es' para español, 'en' para inglés
+    let gameEnded = false; // Indica si ya se mostró la frase final
+
+    const translations = {
+      es: {
+        toggleErrorSound_off: "Sonido error: OFF",
+        toggleErrorSound_on: "Sonido error: ON",
+        scoreboard: (correct, error) => `ACIERTOS: ${correct} | ERRORES: ${error}`,
+        fileLabel: "Elegir archivo .musicxml / .mxl",
+        btnRetroceder: "◀ Retroceder",
+        btnAvanzar: "▶ Avanzar",
+        toggleLocal_off: "MIDI Local Control: OFF",
+        toggleLocal_on: "MIDI Local Control: ON",
+        midiInfo_noDetected: "Dispositivo MIDI: No detectado",
+        midiInfo_notValid: "Dispositivo MIDI: NO VALIDO",
+        finalSuffix: (percentage) => ` (Aciertos: ${percentage}%)`
+      },
+      en: {
+        toggleErrorSound_off: "Error Sound: OFF",
+        toggleErrorSound_on: "Error Sound: ON",
+        scoreboard: (correct, error) => `HITS: ${correct} | ERRORS: ${error}`,
+        fileLabel: "Choose .musicxml / .mxl file",
+        btnRetroceder: "◀ Back",
+        btnAvanzar: "▶ Forward",
+        toggleLocal_off: "MIDI Local Control: OFF",
+        toggleLocal_on: "MIDI Local Control: ON",
+        midiInfo_noDetected: "MIDI Device: Not detected",
+        midiInfo_notValid: "MIDI Device: NOT VALID",
+        finalSuffix: (percentage) => ` (Hits: ${percentage}%)`
+      }
+    };
+
+    // Frases finales en español y en inglés (completa las 100 según necesites)
+    const finalPhrases_es = [
+      "¡Vaya, hoy las notas decidieron jugar al escondite!",
+      "¡Ups! Parece que el compás se te escapó hoy.",
+      "¡No te preocupes! Hasta los grandes tienen días sin ritmo.",
+      "¡Epa! La partitura se puso de mal humor contigo.",
+      "¡Casi! Pero parece que las teclas se tomaron un descansito.",
+      "¡Tranquilo! Cada error es un paso hacia la mejora.",
+      "¡Buen intento! Las notas siguen esperando su turno.",
+      "¡Ouch! No fue tu mejor día musical, pero ríete de ello.",
+      "¡Jaja! La sinfonía se rió un poco de tus fallos.",
+      "¡Vaya, qué curioso! Hoy el compás jugó en tu contra.",
+      "¡Ánimo! Cada error es solo un preludio a la grandeza.",
+      "¡Qué divertido! Pareces improvisar con chispa.",
+      "¡Sigue intentándolo! Hoy las notas están de broma.",
+      "¡Interesante! Tus errores tienen su propio ritmo.",
+      "¡Ja! La partitura tiene un sentido del humor especial contigo.",
+      "¡Eso fue inesperado! Quizá las teclas se tomaron un recreo.",
+      "¡Ríe y sigue! La música es una aventura, no una competencia.",
+      "¡Carcajadas! Parece que las notas se divirtieron a tu costa.",
+      "¡Venga, a reír! Cada fallo es una anécdota musical.",
+      "¡No te rindas! Incluso los maestros tuvieron días así.",
+      "¡Oye! Tus errores tienen estilo, ¡sigue adelante!",
+      "¡Fantástico! Aunque fallaste, al menos lo hiciste con gracia.",
+      "¡Qué original! Tu interpretación tiene un toque único.",
+      "¡Esos compases son toda una comedia musical!",
+      "¡De risa! Cada error es un chiste bien contado.",
+      "¡No te lo tomes tan en serio! La música también es diversión.",
+      "¡Vamos, sigue practicando! Cada fallo es una oportunidad en potencia.",
+      "¡Qué show! Tus errores casi forman parte del espectáculo.",
+      "¡Lo hiciste a tu manera! Un poco de improvisación nunca está de más.",
+      "¡Ríe y sigue! Hoy las notas decidieron tomarse un recreo.",
+      "¡Nada mal! Tus errores hacen que la partitura sea más entretenida.",
+      "¡Un día peculiar! Las teclas se pusieron creativas hoy.",
+      "¡Divertido intento! La música sabe reírse contigo.",
+      "¡Sigue adelante! Cada error es una oportunidad para mejorar.",
+      "¡Bien, casi lo tienes! La improvisación es un arte.",
+      "¡Eso fue inesperado! Las notas tienen sentido del humor.",
+      "¡Vaya, qué ocurrencia! Tus errores son dignos de una anécdota.",
+      "¡Relájate! La partitura tiene días de humor variable.",
+      "¡Menos mal que es solo música! Ríete de ti mismo.",
+      "¡Qué gracioso! Tus notas crean una historia divertida.",
+      "¡Inténtalo de nuevo! Cada fallo es una risa en la historia musical.",
+      "¡Oye, no pasa nada! Hasta los grandes tienen días raros.",
+      "¡Bien ahí! La risa es el mejor acompañante del error.",
+      "¡Un paso en falso, pero con estilo!",
+      "¡A reír se ha dicho! La música te invita a disfrutar.",
+      "¡Esa fue una jugada inesperada! La partitura se quedó de piedra.",
+      "¡No te lo tomes a pecho! Cada fallo es parte de tu comedia personal.",
+      "¡Jaja, qué ocurrencia! Las teclas te hicieron una broma hoy.",
+      "¡Bien, casi lo tienes! Los errores son parte del show.",
+      "¡Una interpretación única! Aunque no aciertes, se nota tu estilo.",
+      "¡Sigue practicando! Los errores te hacen más humano.",
+      "¡De lo más divertido! Tus fallos tienen su propia melodía.",
+      "¡Ríe y mejora! La música es un viaje lleno de sorpresas.",
+      "¡No te lo tomes a pecho! Cada fallo es parte de la sinfonía de la vida.",
+      "¡Una aventura musical! Tus errores son casi intencionales.",
+      "¡Un toque de humor en cada compás, sigue así!",
+      "¡Sigue intentándolo! Incluso los errores pueden sonar bien.",
+      "¡Inesperado y divertido! Tus notas crean momentos únicos.",
+      "¡No te detengas! Cada fallo te acerca a un gran acierto.",
+      "¡Un poco de improvisación nunca está de más!",
+      "¡Lo hiciste con gracia, aunque no fuera perfecto!",
+      "¡Divertido intento! La música es un juego, ríete de los tropiezos.",
+      "¡Nada mal! A veces los errores son la mejor parte de la actuación.",
+      "¡Sigue practicando! Los mejores músicos también tienen tropiezos.",
+      "¡Con humor se avanza! Cada nota fallida es una broma musical.",
+      "¡A reír se ha dicho! La partitura aprecia tu autenticidad.",
+      "¡Qué simpático! Aunque no aciertes, lo haces con estilo.",
+      "¡Pura improvisación! Tus errores son parte del encanto.",
+      "¡Ríe y sigue! La música te sonríe, incluso en los tropiezos.",
+      "¡Menos mal que es solo música! Cada error te enseña algo nuevo.",
+      "¡Sigue adelante! La risa es la mejor respuesta a un fallo.",
+      "¡Bien jugado! Tus errores hacen la actuación memorable.",
+      "¡No pasa nada! Cada compás fallido es una anécdota divertida.",
+      "¡Divertido y único! Tu interpretación es irrepetible.",
+      "¡Ríe, que la música es para disfrutar, errores incluidos!",
+      "¡Con humor se aprende! Cada error es un paso hacia el éxito.",
+      "¡Un toque cómico en cada nota, sigue practicando!",
+      "¡Muy gracioso! La sinfonía aprecia tu sinceridad musical.",
+      "¡Sigue intentándolo! Incluso los errores tienen su encanto.",
+      "¡Una interpretación memorable! Tus fallos son parte del viaje.",
+      "¡Con cada compás, te acercas a la perfección – ríe de los errores!",
+      "¡No te rindas! La música es un juego y cada error es diversión.",
+      "¡Sigue adelante con humor! Cada nota fallida es una anécdota.",
+      "¡Una risa en cada compás, sigue mejorando!",
+      "¡Qué divertido! La partitura se alegra con cada intento.",
+      "¡Tus errores tienen su propio ritmo, y eso es genial!",
+      "¡La risa es parte del arte! Sigue tocando y aprendiendo.",
+      "¡Continúa en el camino! Cada error te hace único y divertido.",
+      "¡No te detengas! La música es una comedia de la vida, sigue adelante!",
+      "¡Una lección en cada compás, y la risa nunca falta!",
+      "¡Fabuloso! Con más del 90 % de aciertos, ¡eres un prodigio musical!",
+      "¡Increíble! Más del 90 % de aciertos; la orquesta te aclama.",
+      "¡Excepcional! Tu precisión supera el 90 %, ¡enhorabuena de verdad!",
+      "¡Magnífico! Con más del 90 % de aciertos, la sinfonía brilla para ti.",
+      "¡Estelar! Superaste el 90 %; ¡tu talento es innegable!",
+      "¡Sobresaliente! Más del 90 % de aciertos; ¡eres una leyenda musical!",
+      "¡Impecable! Con más del 90 % de aciertos, la música te rinde homenaje.",
+      "¡Perfecto! Más del 90 % de aciertos; ¡has alcanzado la perfección musical!",
+      "¡De otro mundo! Con más del 90 % de aciertos, ¡la sinfonía se rinde ante ti!",
+      "¡Monumental! Has logrado un 100 % de aciertos; ¡eres insuperable!",
+      "¡Legendario! Con un 100 % de aciertos, tu talento trasciende la música."
+    ];
+    
+    const finalPhrases_en = [
+      "Wow, today the notes decided to play hide and seek!",
+      "Oops! It seems the beat slipped away from you today.",
+      "Don't worry! Even the greats have off days.",
+      "Whoa! The sheet music got in a bad mood with you.",
+      "Almost! But it seems the keys took a little break.",
+      "Calm down! Every mistake is a step towards improvement.",
+      "Good try! The notes are still waiting for their turn.",
+      "Ouch! It wasn't your best musical day, but laugh it off.",
+      "Haha! The symphony laughed a little at your mistakes.",
+      "Wow, how curious! Today the beat was against you.",
+      "Cheer up! Every mistake is just a prelude to greatness.",
+      "How fun! You seem to be improvising with flair.",
+      "Keep trying! Today the notes are just in a playful mood.",
+      "Interesting! Your mistakes have their own rhythm.",
+      "Ha! The sheet music has a special sense of humor with you.",
+      "That was unexpected! Perhaps the keys took a little break.",
+      "Laugh and carry on! Music is an adventure, not a competition.",
+      "Laughter! It seems the notes had fun at your expense.",
+      "Come on, laugh it off! Every mistake is a musical anecdote.",
+      "Don't give up! Even the masters have days like this.",
+      "Hey! Your mistakes have style, keep going!",
+      "Fantastic! Even though you missed, at least you did it with grace.",
+      "How original! Your performance has a unique touch.",
+      "Those measures are a complete musical comedy!",
+      "Hilarious! Every mistake is a well-told joke.",
+      "Don't take it so seriously! Music is also about fun.",
+      "Come on, keep practicing! Every mistake is a hidden opportunity.",
+      "What a show! Your mistakes almost became part of the performance.",
+      "You did it your own way! A bit of improvisation never hurts.",
+      "Laugh and carry on! Today the notes decided to take a break.",
+      "Not bad! Your mistakes make the sheet music more entertaining.",
+      "What a peculiar day! The keys got creative today.",
+      "Funny attempt! Music knows how to laugh along with you.",
+      "Keep going! Every mistake is an opportunity to improve.",
+      "Good, you're almost there! Improvisation is an art.",
+      "That was unexpected! The notes have a sense of humor.",
+      "Wow, what a moment! Your mistakes are anecdote-worthy.",
+      "Relax! The sheet music has days of variable humor.",
+      "Thank goodness it's just music! Laugh at yourself.",
+      "How funny! Your notes create a fun story.",
+      "Try again! Every mistake is a laugh in the history of music.",
+      "Hey, it's okay! Even the greats have odd days.",
+      "Well done! Laughter is the best companion to a mistake.",
+      "A misstep, but with style!",
+      "Let's laugh then! Music invites you to enjoy.",
+      "That was an unexpected move! The sheet music was left speechless.",
+      "Don't take it to heart! Every mistake is part of your personal comedy.",
+      "Haha, what a quirk! The keys played a joke on you today.",
+      "Well, you're almost there! Mistakes are part of the show.",
+      "A unique performance! Even if you miss, your style shines through.",
+      "Keep practicing! Mistakes make you more human.",
+      "So funny! Your mistakes have their own melody.",
+      "Laugh and improve! Music is a journey full of surprises.",
+      "Don't take it to heart! Every mistake is part of life's symphony.",
+      "A musical adventure! Your mistakes are almost intentional.",
+      "A touch of humor in every measure, keep it up!",
+      "Keep trying! Even mistakes can sound good.",
+      "Unexpected and fun! Your notes create unique moments.",
+      "Don't stop! Every mistake brings you closer to a big success.",
+      "A little improvisation never hurts!",
+      "You did it with grace, even if it wasn't perfect!",
+      "Funny attempt! Music is a game, laugh at the stumbles.",
+      "Not bad! Sometimes mistakes are the best part of the performance.",
+      "Keep practicing! Even the best musicians have missteps.",
+      "With humor, you move forward! Every missed note is a musical joke.",
+      "Let's laugh then! The sheet music appreciates your authenticity.",
+      "How charming! Even if you don't hit the mark, you do it with style.",
+      "Pure improvisation! Your mistakes are part of the charm.",
+      "Laugh and carry on! Music smiles at you, even in the stumbles.",
+      "Thank goodness it's just music! Every mistake teaches you something new.",
+      "Keep going! Laughter is the best response to a mistake.",
+      "Well played! Your mistakes make the performance memorable.",
+      "It's okay! Every missed measure is a fun anecdote.",
+      "Fun and unique! Your performance is one-of-a-kind.",
+      "Laugh, because music is for enjoying—even mistakes included!",
+      "You learn with humor! Every mistake is a step towards success.",
+      "A comedic touch in every note, keep practicing!",
+      "Very funny! The symphony appreciates your musical sincerity.",
+      "Keep trying! Even mistakes have their own charm.",
+      "A memorable performance! Your mistakes are part of the journey.",
+      "With every measure, you're closer to perfection – laugh at the mistakes!",
+      "Don't give up! Music is a game and every mistake is fun.",
+      "Keep moving forward with humor! Every missed note is an anecdote.",
+      "A laugh in every measure, keep improving!",
+      "How fun! The sheet music cheers with every attempt.",
+      "Your mistakes have their own rhythm, and that's awesome!",
+      "Laughter is part of the art! Keep playing and learning.",
+      "Keep on the path! Every mistake makes you unique and fun.",
+      "Don't stop! Music is a comedy of life, keep going!",
+      "A lesson in every measure, and laughter is never in short supply!",
+      "Fabulous! With over 90% hits, you're a musical prodigy!",
+      "Incredible! Over 90% hits; the orchestra applauds you.",
+      "Exceptional! Your accuracy exceeds 90%, truly congratulations!",
+      "Magnificent! With over 90% hits, the symphony shines for you.",
+      "Stellar! You surpassed 90%; your talent is undeniable!",
+      "Outstanding! With over 90% hits; you're a musical legend!",
+      "Impeccable! With over 90% hits, music pays homage to you.",
+      "Perfect! With over 90% hits; you've achieved musical perfection!",
+      "Out of this world! With over 90% hits, the symphony bows down to you!",
+      "Monumental! You've achieved 100% hits; you're unbeatable!",
+      "Legendary! With 100% hits, your talent transcends music."
+    ]; 
+
+    // Declaración y precarga del sonido de error
+    let errorAudio = new Audio("https://cdn.jsdelivr.net/gh/rafgim/NUEVO@main/ERROR.wav");
+    errorAudio.preload = "auto";
+    errorAudio.load();
+    
+    function updateLanguage() {
+      const lang = translations[currentLanguage];
+      
+      // Actualiza textos de botones y etiquetas
+      const btnErrorSound = document.getElementById("toggleErrorSound");
+      btnErrorSound.textContent = errorSoundEnabled ? lang.toggleErrorSound_on : lang.toggleErrorSound_off;
+      
+      document.getElementById("scoreboard").textContent = lang.scoreboard(correctCount, errorCount);
+      document.getElementById("fileLabel").textContent = lang.fileLabel;
+      document.getElementById("btnRetroceder").textContent = lang.btnRetroceder;
+      document.getElementById("btnAvanzar").textContent = lang.btnAvanzar;
+      
+      const btnLocal = document.getElementById("toggleLocal");
+      btnLocal.textContent = localControlEnabled ? lang.toggleLocal_on : lang.toggleLocal_off;
+      
+      const midiInfo = document.getElementById("midiInfo");
+      if (midiOutput) {
+        // Si hay dispositivo MIDI, se muestra su nombre reemplazando "No detectado" o "Not detected"
+        midiInfo.textContent = lang.midiInfo_noDetected.replace(currentLanguage === 'es' ? "No detectado" : "Not detected", midiOutput.name);
+      } else {
+        midiInfo.textContent = lang.midiInfo_noDetected;
+      }
+      
+      // Si se muestra el mensaje final, se actualiza a partir de los valores actuales
+      const finalDiv = document.getElementById("finalMessage");
+      if (finalDiv.style.display !== "none") {
+        let total = scoreEvents.length;
+        let ratio = total > 0 ? correctCount / total : 0;
+        let percentage = Math.floor(ratio * 100);
+        let index = percentage >= 100 ? 99 : percentage;
+        let phrases = currentLanguage === 'en' ? finalPhrases_en : finalPhrases_es;
+        let phrase = phrases[index];
+        finalDiv.textContent = phrase + lang.finalSuffix(percentage);
+      }
+    }
+    
+    // Configuración de los botones de cambio de idioma
+    document.getElementById("btn_es").addEventListener("click", function() {
+      currentLanguage = 'es';
+      updateLanguage();
+    });
+    
+    document.getElementById("btn_en").addEventListener("click", function() {
+      currentLanguage = 'en';
+      updateLanguage();
+    });
+    
+    // (El resto del código JavaScript se mantiene igual)
+    let osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay("score", { drawingParameters: "default" });
+    let scoreEvents = [];
+    let currentEventIndex = 0;
+    let midiOutput = null;
+    let activeTiedNotes = new Set();
+    let midiBuffer = new Set();
+    let lastNoteTime = 0;
+    const NOTE_GROUPING_TIME = 30;
+    
+    let sustainPedalActive = false;
+    let activeScoreEvents = [];
+    let localControlEnabled = false;
+    
+    let correctCount = 0;
+    let errorCount = 0;
+    
+    // Variable para controlar si se reproduce el sonido de error (inicialmente desactivado)
+    let errorSoundEnabled = false;
+    
+    updateLanguage();
+    
+    function resetState() {
+      correctCount = 0;
+      errorCount = 0;
+      updateScoreboard();
+      document.querySelector("h1").style.color = "#00008B";
+      document.getElementById("scoreboard").style.backgroundColor = "green";
+      document.getElementById("score").style.borderColor = "#00008B";
+      document.getElementById("header").style.borderBottomColor = "#00008B";
+      document.querySelector(".controls").style.borderBottomColor = "#00008B";
+      window.scrollTo(0, 0);
+    }
+    
+    function updateLocalControl() {
+      const btn = document.getElementById("toggleLocal");
+      const lang = translations[currentLanguage];
+      if (localControlEnabled) {
+        btn.textContent = lang.toggleLocal_on;
+        btn.style.backgroundColor = "green";
+        if (midiOutput) {
+          try {
+            midiOutput.send([0xB0, 122, 127]);
+          } catch (err) {
+            console.error("Error enviando mensaje MIDI para activar control local:", err);
+            document.getElementById("midiInfo").textContent = lang.midiInfo_notValid;
+            document.getElementById("midiInfo").style.color = "red";
+          }
+        }
+      } else {
+        btn.textContent = lang.toggleLocal_off;
+        btn.style.backgroundColor = "red";
+        if (midiOutput) {
+          try {
+            midiOutput.send([0xB0, 122, 0]);
+          } catch (err) {
+            console.error("Error enviando mensaje MIDI para desactivar control local:", err);
+            document.getElementById("midiInfo").textContent = lang.midiInfo_notValid;
+            document.getElementById("midiInfo").style.color = "red";
+          }
+        }
+      }
+    }
+    
+    document.getElementById("toggleErrorSound").addEventListener("click", function() {
+      errorSoundEnabled = !errorSoundEnabled;
+      this.style.backgroundColor = errorSoundEnabled ? "green" : "red";
+      updateLanguage();
+    });
+    
+    document.getElementById("toggleLocal").addEventListener("click", function() {
+      localControlEnabled = !localControlEnabled;
+      updateLocalControl();
+    });
+    updateLocalControl();
+    
+    async function loadAndRender(musicXML) {
+      document.getElementById("finalMessage").style.display = "none";
+      resetState();
+      // Se reinicia la variable gameEnded para permitir la navegación con un nuevo archivo
+      gameEnded = false;
+      try {
+        console.log("Cargando MusicXML...");
+        await osmd.load(musicXML);
+        osmd.render();
+        console.log("Partitura renderizada correctamente.");
+        osmd.cursor.reset();
+        osmd.cursor.show();
+        setTimeout(() => {
+          console.log("Extrayendo eventos...");
+          extractScoreEvents();
+          addMeasureClickListeners();
+          // Solicitar acceso MIDI después de cargar la partitura
+          if (navigator.requestMIDIAccess) {
+            navigator.requestMIDIAccess({ sysex: false }).then(onMIDISuccess);
+          }
+        }, 1000);
+      } catch (error) {
+        console.error("Error al cargar/renderizar el MusicXML:", error);
+      }
+    }
+    
+    document.getElementById("fileInput").addEventListener("change", function(e) {
+      let file = e.target.files[0];
+      if (!file) return;
+      const fileName = file.name.toLowerCase();
+      if (fileName.endsWith(".mxl")) {
+        console.log("Archivo MXL detectado.");
+        let reader = new FileReader();
+        reader.onload = function(e) {
+          JSZip.loadAsync(e.target.result)
+            .then(zip => {
+              console.log("Archivo MXL descomprimido. Archivos encontrados:", Object.keys(zip.files));
+              if(zip.files["META-INF/container.xml"]) {
+                return zip.file("META-INF/container.xml").async("string")
+                  .then(containerXML => {
+                    console.log("container.xml leído:", containerXML.substring(0,200));
+                    let parser = new DOMParser();
+                    let xmlDoc = parser.parseFromString(containerXML, "application/xml");
+                    let rootfileElement = xmlDoc.querySelector("rootfile");
+                    if(rootfileElement) {
+                      let fullPath = rootfileElement.getAttribute("full-path");
+                      console.log("Archivo principal indicado en container.xml:", fullPath);
+                      return zip.file(fullPath).async("string");
+                    } else {
+                      console.error("No se encontró elemento rootfile en container.xml");
+                      throw new Error("No se encontró elemento rootfile en container.xml");
+                    }
+                  });
+              } else {
+                let xmlFile = null;
+                for (let filename in zip.files) {
+                  if (filename.toLowerCase().endsWith(".xml") || filename.toLowerCase().endsWith(".musicxml")) {
+                    xmlFile = filename;
+                    break;
+                  }
+                }
+                if (xmlFile) {
+                  console.log("Archivo XML encontrado en el MXL:", xmlFile);
+                  return zip.file(xmlFile).async("string");
+                } else {
+                  throw new Error("No se encontró ningún archivo XML dentro del MXL.");
+                }
+              }
+            })
+            .then(musicXML => {
+              currentEventIndex = 0;
+              loadAndRender(musicXML);
+              document.getElementById("fileInput").value = "";
+            })
+            .catch(err => {
+              console.error("Error al descomprimir el archivo MXL:", err);
+            });
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+          let musicXML = e.target.result;
+          currentEventIndex = 0;
+          loadAndRender(musicXML);
+          document.getElementById("fileInput").value = "";
+        };
+        reader.readAsText(file);
+      }
+    });
+    
+    function extractScoreEvents() {
+      scoreEvents = [];
+      if (!osmd.sheet || !osmd.sheet.sourceMeasures || osmd.sheet.sourceMeasures.length === 0) {
+        console.warn("No se encontraron compases en osmd.sheet.");
+        return;
+      }
+      osmd.sheet.sourceMeasures.forEach((measure, mIndex) => {
+        measure.verticalSourceStaffEntryContainers.forEach((verticalEntry) => {
+          let rightHandPitches = [];
+          let leftHandPitches = [];
+          verticalEntry.staffEntries.forEach((staffEntry, staffIndex) => {
+            staffEntry.voiceEntries.forEach(ve => {
+              ve.notes.forEach(note => {
+                let midi = getMidiPitch(note);
+                if (midi !== undefined) {
+                  let isTied = note.NoteTie;
+                  if (isTied) {
+                    if (activeTiedNotes.has(midi)) {
+                      activeTiedNotes.delete(midi);
+                    } else {
+                      activeTiedNotes.add(midi);
+                      (staffIndex === 0 ? rightHandPitches : leftHandPitches).push(midi);
+                    }
+                  } else {
+                    (staffIndex === 0 ? rightHandPitches : leftHandPitches).push(midi);
+                  }
+                }
+              });
+            });
+          });
+          if (rightHandPitches.length > 0 || leftHandPitches.length > 0) {
+            scoreEvents.push({ measure: mIndex, rightHandPitches, leftHandPitches });
+          }
+        });
+      });
+      console.log("scoreEvents:", scoreEvents);
+    }
+    
+    function getMidiPitch(note) {
+      return note.pitch && note.pitch.halfTone !== undefined ? note.pitch.halfTone + 12 : undefined;
+    }
+    
+    function addMeasureClickListeners() {
+      const measureElements = document.querySelectorAll("g.vf-measure[id]");
+      console.log("Encontrados", measureElements.length, "compases con 'id'.");
+      
+      const measureNumbers = Array.from(measureElements).map(me =>
+        parseInt(me.getAttribute("id").replace(/\D/g, ""), 10)
+      );
+      const startsAtZero = Math.min(...measureNumbers) === 0;
+      console.log("Los números de compás empiezan en", startsAtZero ? "0" : "1");
+  
+      measureElements.forEach((measureEl) => {
+        measureEl.style.cursor = "pointer";
+        measureEl.addEventListener("click", () => {
+          // Si ya se mostró el mensaje final, no se permite la navegación
+          if (gameEnded) return;
+          const measureId = measureEl.getAttribute("id");
+          console.log("Clic en compás con ID:", measureId);
+          const parsedNumber = parseInt(measureId.replace(/\D/g, ""), 10);
+          const targetMeasure = startsAtZero ? parsedNumber : parsedNumber - 1;
+          console.log("Compás mapeado a índice:", targetMeasure);
+          
+          let foundIndex = scoreEvents.findIndex(ev => ev.measure === targetMeasure);
+          if (foundIndex !== -1) {
+            currentEventIndex = foundIndex;
+            updateCursorPosition(currentEventIndex);
+            requestAnimationFrame(performScrollUpdate);
+          } else {
+            console.warn("No se encontró un evento para el compás con ID:", measureId);
+          }
+        });
+      });
+    }
+    
+    function updateCursorPosition(index) {
+      osmd.cursor.reset();
+      for (let i = 0; i < index; i++) {
+        osmd.cursor.next();
+      }
+      console.log("Cursor actualizado a índice:", index);
+    }
+    
+    function performScrollUpdate() {
+      let cursorEl = osmd.cursor.cursorElement || document.querySelector('.osmd-cursor');
+      if (cursorEl) {
+        let rect = cursorEl.getBoundingClientRect();
+        let cursorCenter = rect.top + rect.height / 2;
+        let viewportTarget = window.innerHeight * 0.5;
+        let diff = cursorCenter - viewportTarget;
+        if (Math.abs(diff) > 20) {
+          window.scrollBy({ top: diff, behavior: 'smooth' });
+        }
+      }
+    }
+    
+    document.getElementById("btnAvanzar").addEventListener("click", () => {
+      if (gameEnded) return;
+      if (currentEventIndex < scoreEvents.length - 1) {
+        currentEventIndex++;
+        updateCursorPosition(currentEventIndex);
+        requestAnimationFrame(performScrollUpdate);
+      } else {
+        showFinalMessage();
+      }
+    });
+    
+    document.getElementById("btnRetroceder").addEventListener("click", () => {
+      if (gameEnded) return;
+      if (currentEventIndex > 0) {
+        currentEventIndex--;
+        updateCursorPosition(currentEventIndex);
+        requestAnimationFrame(performScrollUpdate);
+      }
+    });
+    
+    function setsEqual(setA, setB) {
+      if (setA.size !== setB.size) return false;
+      for (let a of setA) {
+        if (!setB.has(a)) return false;
+      }
+      return true;
+    }
+    
+    function setHeaderAndScoreColor(color) {
+      document.querySelector("h1").style.color = color;
+      document.getElementById("scoreboard").style.backgroundColor = color;
+      document.getElementById("score").style.borderColor = color;
+      document.getElementById("header").style.borderBottomColor = color;
+      document.querySelector(".controls").style.borderBottomColor = color;
+    }
+    
+    function checkUserInput(velocity) {
+      if (currentEventIndex >= scoreEvents.length) return;
+      let ev = scoreEvents[currentEventIndex];
+      let expectedNotes = new Set([...ev.rightHandPitches, ...ev.leftHandPitches]);
+      
+      if (setsEqual(midiBuffer, expectedNotes)) {
+        correctCount++;
+        updateScoreboard();
+        setHeaderAndScoreColor("green");
+      } else {
+        errorCount++;
+        updateScoreboard();
+        setHeaderAndScoreColor("red");
+        if (errorSoundEnabled) {
+          errorAudio.currentTime = 0;
+          errorAudio.play();
+        }
+      }
+      triggerScoreEvent(velocity);
+    }
+    
+    function updateScoreboard() {
+      const lang = translations[currentLanguage];
+      document.getElementById("scoreboard").textContent = lang.scoreboard(correctCount, errorCount);
+    }
+    
+    function triggerScoreEvent(velocity) {
+      if (currentEventIndex >= scoreEvents.length) return;
+      let ev = scoreEvents[currentEventIndex];
+      let physicalKeys = Array.from(midiBuffer);
+      
+      if (ev.rightHandPitches.length > 0) {
+        activeScoreEvents.push({
+          physicalKeys: physicalKeys.slice(),
+          scoreNotes: ev.rightHandPitches.slice(),
+          hand: "right",
+          pendingRelease: false
+        });
+        let rightHandVelocity = Math.min(127, velocity * 1.1);
+        ev.rightHandPitches.forEach(midi => {
+          if (midiOutput) midiOutput.send([0x90, midi, rightHandVelocity]);
+        });
+      }
+      if (ev.leftHandPitches.length > 0) {
+        activeScoreEvents.push({
+          physicalKeys: physicalKeys.slice(),
+          scoreNotes: ev.leftHandPitches.slice(),
+          hand: "left",
+          pendingRelease: false
+        });
+        ev.leftHandPitches.forEach(midi => {
+          if (midiOutput) midiOutput.send([0x90, midi, velocity]);
+        });
+      }
+      osmd.cursor.next();
+      console.log("Cursor avanzado vía MIDI.");
+      currentEventIndex++;
+      requestAnimationFrame(performScrollUpdate);
+      midiBuffer.clear();
+      if (currentEventIndex >= scoreEvents.length) {
+        showFinalMessage();
+      }
+    }
+    
+    function showFinalMessage() {
+      let total = scoreEvents.length;
+      let ratio = total > 0 ? correctCount / total : 0;
+      let percentage = Math.floor(ratio * 100);
+      let index = percentage >= 100 ? 99 : percentage;
+      let phrases = currentLanguage === 'en' ? finalPhrases_en : finalPhrases_es;
+      let phrase = phrases[index];
+      let finalDiv = document.getElementById("finalMessage");
+      finalDiv.textContent = phrase + translations[currentLanguage].finalSuffix(percentage);
+      finalDiv.style.display = "block";
+      // Una vez mostrada la frase final, se impide la navegación
+      gameEnded = true;
+    }
+    
+    function onMIDISuccess(midiAccess) {
+      let foundOutput = false;
+      for (let output of midiAccess.outputs.values()) {
+        midiOutput = output;
+        document.getElementById("midiInfo").innerText =
+          translations[currentLanguage].midiInfo_noDetected.replace(
+            currentLanguage === 'es' ? "No detectado" : "Not detected",
+            output.name
+          );
+        updateLocalControl();
+        foundOutput = true;
+        break;
+      }
+      if (!foundOutput) {
+        document.getElementById("midiInfo").textContent = translations[currentLanguage].midiInfo_noDetected;
+        document.getElementById("midiInfo").style.color = "red";
+      }
+      for (let input of midiAccess.inputs.values()) {
+        input.onmidimessage = handleMIDIMessage;
+      }
+    }
+    
+    function handleMIDIMessage(event) {
+      let [command, data1, data2] = event.data;
+      let now = performance.now();
+      
+      if ((command & 0xF0) === 0xB0 && data1 === 64) {
+        if (data2 >= 64) {
+          sustainPedalActive = true;
+          console.log("Pedal de sustain activado.");
+        } else {
+          sustainPedalActive = false;
+          console.log("Pedal de sustain liberado.");
+          if (midiOutput) {
+            midiOutput.send([0xB0, 64, 0]);
+            console.log("Enviando señal de pedal liberado (OFF).");
+          }
+          activeScoreEvents.forEach(eventObj => {
+            if (eventObj.pendingRelease) {
+              eventObj.scoreNotes.forEach(scoreNote => {
+                if (midiOutput) midiOutput.send([0x80, scoreNote, 0]);
+              });
+              eventObj.pendingRelease = false;
+            }
+          });
+          activeScoreEvents = activeScoreEvents.filter(evObj => evObj.physicalKeys.length > 0);
+        }
+        return;
+      }
+      
+      if (command === 0x90 && data2 > 0) {
+        midiBuffer.add(data1);
+        if (now - lastNoteTime > NOTE_GROUPING_TIME) {
+          setTimeout(() => {
+            if (midiBuffer.size > 0) {
+              checkUserInput(data2);
+            }
+          }, NOTE_GROUPING_TIME);
+        }
+        lastNoteTime = now;
+      }
+      else if (command === 0x80 || (command === 0x90 && data2 === 0)) {
+        activeScoreEvents.forEach(eventObj => {
+          if (eventObj.physicalKeys.includes(data1)) {
+            eventObj.physicalKeys = eventObj.physicalKeys.filter(n => n !== data1);
+            if (eventObj.physicalKeys.length === 0) {
+              if (sustainPedalActive && eventObj.scoreNotes.includes(data1)) {
+                if (midiOutput) {
+                  midiOutput.send([0xB0, 64, 127]);
+                  console.log("Enviando señal de pedal (ON) para mantener la nota", data1);
+                }
+              } else {
+                if (sustainPedalActive) {
+                  eventObj.pendingRelease = true;
+                } else {
+                  eventObj.scoreNotes.forEach(scoreNote => {
+                    if (midiOutput) midiOutput.send([0x80, scoreNote, 0]);
+                  });
+                }
+              }
+            }
+          }
+        });
+        activeScoreEvents = activeScoreEvents.filter(evObj => evObj.physicalKeys.length > 0 || evObj.pendingRelease);
+      }
+    }
+    
+    
+    document.addEventListener("DOMContentLoaded", () => {
+      fetch("https://cdn.jsdelivr.net/gh/rafgim/NUEVO@main/2Prelude%20in%20C%20Major.musicxml")
+        .then(response => response.text())
+        .then(musicXML => {
+          currentEventIndex = 0;
+          loadAndRender(musicXML);
+        })
+        .catch(error => console.error("Error al cargar la partitura por defecto:", error));
+    });
+  </script>
+</body>
+</html>
