@@ -805,7 +805,11 @@
       let foundOutput = false;
       for (let output of midiAccess.outputs.values()) {
         midiOutput = output;
-        document.getElementById("midiInfo").innerText = translations[currentLanguage].midiInfo_noDetected.replace("No detectado", output.name);
+        document.getElementById("midiInfo").innerText =
+  translations[currentLanguage].midiInfo_noDetected.replace(
+    currentLanguage === 'es' ? "No detectado" : "Not detected",
+    output.name
+  );
         updateLocalControl();
         foundOutput = true;
         break;
