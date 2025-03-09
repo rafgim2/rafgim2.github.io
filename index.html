@@ -152,6 +152,14 @@
       color: white;
       border-radius: 8px;
     }
+    /* Estilo para el selector de simultaneidad */
+    .middle-control select,
+    .middle-control span {
+      vertical-align: middle;
+      margin: 0 5px;
+      font-family: sans-serif;
+      font-size: 1em;
+    }
     /* Contenedor de la partitura con transformación CSS para zoom menor */
     #score {
       border: 4px solid #00008B;
@@ -217,6 +225,14 @@
     </div>
     <div class="middle-control">
       <button id="btnRetroceder">◀ Retroceder</button>
+      <!-- Selector de simultaneidad -->
+      <span id="simultaneityLabel">Intervalo de simultaneidad (ms):</span>
+      <select id="simultaneitySelector">
+        <option value="25">< 25 ms</option>
+        <option value="50" selected>< 50 ms</option>
+        <option value="75">< 75 ms</option>
+        <option value="100">< 100 ms</option>
+      </select>
       <button id="btnAvanzar">▶ Avanzar</button>
     </div>
     <div class="right-control">
@@ -235,6 +251,9 @@
     let currentLanguage = 'es'; // 'es' para español, 'en' para inglés
     let gameEnded = false; // Indica si ya se mostró la frase final
 
+    // Se define la variable para el intervalo de simultaneidad (en ms)
+    let noteGroupingTime = 50;
+
     const translations = {
       es: {
         scoreboard: (correct, error) => `ACIERTOS: ${correct} | ERRORES: ${error}`,
@@ -245,7 +264,8 @@
         toggleLocal_on: "MIDI Local Control: ON",
         midiInfo_noDetected: "Dispositivo MIDI: No detectado",
         midiInfo_notValid: "Dispositivo MIDI: NO VALIDO",
-        finalSuffix: (percentage) => ` (Aciertos: ${percentage}%)`
+        finalSuffix: (percentage) => ` (Aciertos: ${percentage}%)`,
+        simultaneityLabel: "Teclas simultáneas (ms):"
       },
       en: {
         scoreboard: (correct, error) => `HITS: ${correct} | ERRORS: ${error}`,
@@ -256,11 +276,11 @@
         toggleLocal_on: "MIDI Local Control: ON",
         midiInfo_noDetected: "MIDI Device: Not detected",
         midiInfo_notValid: "MIDI Device: NOT VALID",
-        finalSuffix: (percentage) => ` (Hits: ${percentage}%)`
+        finalSuffix: (percentage) => ` (Hits: ${percentage}%)`,
+        simultaneityLabel: "Simultaneity Interval (ms):"
       }
     };
 
-    // Frases finales en español y en inglés (completa las 100 según necesites)
     const finalPhrases_es = [
       "¡Vaya, hoy las notas decidieron jugar al escondite!",
       "¡Ups! Parece que el compás se te escapó hoy.",
@@ -467,9 +487,9 @@
       "Out of this world! With over 90% hits, the symphony bows down to you!",
       "Monumental! You've achieved 100% hits; you're unbeatable!",
       "Legendary! With 100% hits, your talent transcends music."
-    ]; 
+    ];
 
-    // Declaración y precarga de variables MIDI, contadores y demás
+    // Inicialización de OSMD y otras variables
     let osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay("score", { drawingParameters: "default" });
     let scoreEvents = [];
     let currentEventIndex = 0;
@@ -477,7 +497,6 @@
     let activeTiedNotes = new Set();
     let midiBuffer = new Set();
     let lastNoteTime = 0;
-    const NOTE_GROUPING_TIME = 30;
     
     let sustainPedalActive = false;
     let activeScoreEvents = [];
@@ -496,9 +515,8 @@
       document.getElementById("fileLabel").textContent = lang.fileLabel;
       document.getElementById("btnRetroceder").textContent = lang.btnRetroceder;
       document.getElementById("btnAvanzar").textContent = lang.btnAvanzar;
-      
-      const btnLocal = document.getElementById("toggleLocal");
-      btnLocal.textContent = localControlEnabled ? lang.toggleLocal_on : lang.toggleLocal_off;
+      document.getElementById("toggleLocal").textContent = localControlEnabled ? lang.toggleLocal_on : lang.toggleLocal_off;
+      document.getElementById("simultaneityLabel").textContent = lang.simultaneityLabel;
       
       const midiInfo = document.getElementById("midiInfo");
       if (midiOutput) {
@@ -507,7 +525,7 @@
         midiInfo.textContent = lang.midiInfo_noDetected;
       }
       
-      // Si se muestra el mensaje final, se actualiza a partir de los valores actuales
+      // Actualiza el mensaje final si se está mostrando
       const finalDiv = document.getElementById("finalMessage");
       if (finalDiv.style.display !== "none") {
         let total = scoreEvents.length;
@@ -520,7 +538,7 @@
       }
     }
     
-    // Configuración de los botones de cambio de idioma
+    // Listener para cambio de idioma
     document.getElementById("btn_es").addEventListener("click", function() {
       currentLanguage = 'es';
       updateLanguage();
@@ -531,19 +549,13 @@
       updateLanguage();
     });
     
-    // (El resto del código JavaScript se mantiene igual)
-    function resetState() {
-      correctCount = 0;
-      errorCount = 0;
-      updateScoreboard();
-      document.querySelector("h1").style.color = "#00008B";
-      document.getElementById("scoreboard").style.backgroundColor = "green";
-      document.getElementById("score").style.borderColor = "#00008B";
-      document.getElementById("header").style.borderBottomColor = "#00008B";
-      document.querySelector(".controls").style.borderBottomColor = "#00008B";
-      window.scrollTo(0, 0);
-    }
+    // Listener para el selector de simultaneidad
+    document.getElementById("simultaneitySelector").addEventListener("change", function(e) {
+      noteGroupingTime = parseInt(e.target.value);
+      console.log("Nuevo intervalo de simultaneidad:", noteGroupingTime, "ms");
+    });
     
+    // Actualiza el botón de control MIDI local
     function updateLocalControl() {
       const btn = document.getElementById("toggleLocal");
       const lang = translations[currentLanguage];
@@ -793,16 +805,14 @@
     }
     
     function setHeaderAndScoreColor(color) {
-  document.querySelector("h1").style.color = color;
-  document.getElementById("scoreboard").style.backgroundColor = color;
-  document.getElementById("score").style.borderColor = color;
-  document.getElementById("score").style.backgroundColor = "white"; // fondo blanco siempre
-  document.body.style.backgroundColor = color === "green" ? "#ccffcc" : "#ffcccc"; // exterior del contenedor
-  document.getElementById("header").style.borderBottomColor = color;
-  document.querySelector(".controls").style.borderBottomColor = color;
-}
-
-
+      document.querySelector("h1").style.color = color;
+      document.getElementById("scoreboard").style.backgroundColor = color;
+      document.getElementById("score").style.borderColor = color;
+      document.getElementById("score").style.backgroundColor = "white";
+      document.body.style.backgroundColor = color === "green" ? "#ccffcc" : "#ffcccc";
+      document.getElementById("header").style.borderBottomColor = color;
+      document.querySelector(".controls").style.borderBottomColor = color;
+    }
     
     function checkUserInput(velocity) {
       if (currentEventIndex >= scoreEvents.length) return;
@@ -929,12 +939,12 @@
       
       if (command === 0x90 && data2 > 0) {
         midiBuffer.add(data1);
-        if (now - lastNoteTime > NOTE_GROUPING_TIME) {
+        if (now - lastNoteTime > noteGroupingTime) {
           setTimeout(() => {
             if (midiBuffer.size > 0) {
               checkUserInput(data2);
             }
-          }, NOTE_GROUPING_TIME);
+          }, noteGroupingTime);
         }
         lastNoteTime = now;
       }
@@ -974,6 +984,18 @@
         })
         .catch(error => console.error("Error al cargar la partitura por defecto:", error));
     });
+    
+    function resetState() {
+      correctCount = 0;
+      errorCount = 0;
+      updateScoreboard();
+      document.querySelector("h1").style.color = "#00008B";
+      document.getElementById("scoreboard").style.backgroundColor = "green";
+      document.getElementById("score").style.borderColor = "#00008B";
+      document.getElementById("header").style.borderBottomColor = "#00008B";
+      document.querySelector(".controls").style.borderBottomColor = "#00008B";
+      window.scrollTo(0, 0);
+    }
   </script>
 </body>
 </html>
