@@ -120,7 +120,12 @@
     }
     .left-control { position: absolute; left: 20px; }
     .right-control { position: absolute; right: 20px; }
-    .middle-control { text-align: center; }
+    .middle-control {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
     #fileLabel {
       padding: 8px 12px;
       background-color: green;
@@ -133,7 +138,6 @@
     /* Input oculto para archivos */
     #fileInput { display: none; }
     .middle-control button {
-      margin-top: 20px;
       margin: 20px 5px;
       padding: 8px 12px;
       border: none;
@@ -189,6 +193,25 @@
       z-index: 3000;
       display: none;
     }
+    /* Overlay de ayuda centrado en la pantalla */
+    #helpOverlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      max-width: 500px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #000;
+      font-family: sans-serif;
+      font-size: 1.0em;
+      text-align: left;
+      border: 4px solid #00008B;
+      border-radius: 8px;
+      z-index: 3000;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -224,16 +247,18 @@
       <input type="file" id="fileInput" accept=".xml,.musicxml,.mxl">
     </div>
     <div class="middle-control">
+      <button id="btnLeftBoost">M. Izquierda 🔊</button>
       <button id="btnRetroceder">◀ Retroceder</button>
-      <!-- Selector de simultaneidad -->
       <span id="simultaneityLabel">Intervalo de simultaneidad (ms):</span>
       <select id="simultaneitySelector">
-        <option value="25">< 25 ms</option>
-        <option value="50" selected>< 50 ms</option>
-        <option value="75">< 75 ms</option>
-        <option value="100">< 100 ms</option>
+        <option value="25">&lt; 25 ms</option>
+        <option value="50" selected>&lt; 50 ms</option>
+        <option value="75">&lt; 75 ms</option>
+        <option value="100">&lt; 100 ms</option>
       </select>
       <button id="btnAvanzar">▶ Avanzar</button>
+      <button id="btnRightBoost">M. Derecha 🔊</button>
+      <button id="btnHelp">Help</button>
     </div>
     <div class="right-control">
       <button id="toggleLocal">MIDI Local Control: OFF</button>
@@ -245,21 +270,28 @@
   
   <!-- Overlay para el mensaje final -->
   <div id="finalMessage"></div>
+  <!-- Overlay para la ayuda -->
+  <div id="helpOverlay"></div>
   
   <script>
     // Variables globales para traducción y control del juego
     let currentLanguage = 'es'; // 'es' para español, 'en' para inglés
     let gameEnded = false; // Indica si ya se mostró la frase final
 
-    // Se define la variable para el intervalo de simultaneidad (en ms)
+    // Variable para el intervalo de simultaneidad (en ms)
     let noteGroupingTime = 50;
-
+    
+    // Variable para seleccionar la mano que se refuerza (por defecto "right")
+    let boostHand = "right";
+    
     const translations = {
       es: {
         scoreboard: (correct, error) => `ACIERTOS: ${correct} | ERRORES: ${error}`,
-        fileLabel: "Elegir archivo .musicxml / .mxl",
-        btnRetroceder: "◀ Retroceder",
-        btnAvanzar: "▶ Avanzar",
+        fileLabel: "Elegir archivo",
+        btnRetroceder: "◀",
+        btnAvanzar: "▶",
+        btnLeftBoost: "M. Izquierda 🔊",
+        btnRightBoost: "M. Derecha 🔊",
         toggleLocal_off: "MIDI Local Control: OFF",
         toggleLocal_on: "MIDI Local Control: ON",
         midiInfo_noDetected: "Dispositivo MIDI: No detectado",
@@ -269,15 +301,17 @@
       },
       en: {
         scoreboard: (correct, error) => `HITS: ${correct} | ERRORS: ${error}`,
-        fileLabel: "Choose .musicxml / .mxl file",
-        btnRetroceder: "◀ Back",
-        btnAvanzar: "▶ Forward",
+        fileLabel: "Choose file",
+        btnRetroceder: "◀",
+        btnAvanzar: "▶",
+        btnLeftBoost: "L. Hand 🔊",
+        btnRightBoost: "R. Hand 🔊",
         toggleLocal_off: "MIDI Local Control: OFF",
         toggleLocal_on: "MIDI Local Control: ON",
         midiInfo_noDetected: "MIDI Device: Not detected",
         midiInfo_notValid: "MIDI Device: NOT VALID",
         finalSuffix: (percentage) => ` (Hits: ${percentage}%)`,
-        simultaneityLabel: "Simultaneity Interval (ms):"
+        simultaneityLabel: "Simultaneous keys (ms):"
       }
     };
 
@@ -517,6 +551,8 @@
       document.getElementById("btnAvanzar").textContent = lang.btnAvanzar;
       document.getElementById("toggleLocal").textContent = localControlEnabled ? lang.toggleLocal_on : lang.toggleLocal_off;
       document.getElementById("simultaneityLabel").textContent = lang.simultaneityLabel;
+      document.getElementById("btnLeftBoost").textContent = lang.btnLeftBoost;
+      document.getElementById("btnRightBoost").textContent = lang.btnRightBoost;
       
       const midiInfo = document.getElementById("midiInfo");
       if (midiOutput) {
@@ -535,6 +571,16 @@
         let phrases = currentLanguage === 'en' ? finalPhrases_en : finalPhrases_es;
         let phrase = phrases[index];
         finalDiv.textContent = phrase + lang.finalSuffix(percentage);
+      }
+      
+      // Actualiza el texto del overlay de ayuda si está visible
+      const helpOverlay = document.getElementById("helpOverlay");
+      if (helpOverlay.style.display !== "none" && helpOverlay.style.display !== "") {
+        if (currentLanguage === "en") {
+          helpOverlay.innerHTML = "DREAM IT is an app that allows you to play without mistakes by correcting errors in real-time, recording your hits and misses while maintaining your original dynamics. Here is the functionality of the main buttons:<br><br> - Choose file: select a .musicxml, .mxl, or .xml file. <br> - Hand buttons: increase the volume of the selected hand by 10%. <br> - Forward and Back: move forward or backward one space in the score. <br> - MIDI Local Control: turn the piano's local control on or off. <br> - Flag buttons: translate the texts to the corresponding language.<br> - Simultaneity selector: threshold in milliseconds at which the app recognizes keys that should sound together, generating a single displacement in the score.";
+        } else {
+          helpOverlay.innerHTML = "DREAM IT, es una app que permite tocar sin errores corrigiendo en tiempo real cualquier error, registrando tus aciertos y fallos y manteniendo tu dinámica original. Aquí tienes la funcionalidad de los botones principales:<br><br> - Elegir archivo: elige un archivo .musicxml, .mxl o .xml. <br> - Botones de manos: incrementa el volumen un 10% la mano seleccionada. <br> - Avanzar y retroceder: avanza o retrocede un espacio en la partitura. <br> - Midi Local Control: enciende o apaga el control local del piano. <br> - Botones de banderas: traduce los textos al idioma correspondiente.<br> - Selector de simultaneidad: umbral en milisegundos en el que la app reconoce teclas que deben sonar juntas, generando un solo desplazamiento en la partitura.";
+        }
       }
     }
     
@@ -591,6 +637,41 @@
       updateLocalControl();
     });
     updateLocalControl();
+    
+    // Listeners para los botones de boost de mano
+    document.getElementById("btnLeftBoost").addEventListener("click", () => {
+      boostHand = "left";
+      document.getElementById("btnLeftBoost").style.backgroundColor = "green";
+      document.getElementById("btnRightBoost").style.backgroundColor = "dodgerblue";
+      console.log("Boost activado para la mano izquierda.");
+    });
+    
+    document.getElementById("btnRightBoost").addEventListener("click", () => {
+      boostHand = "right";
+      document.getElementById("btnRightBoost").style.backgroundColor = "green";
+      document.getElementById("btnLeftBoost").style.backgroundColor = "dodgerblue";
+      console.log("Boost activado para la mano derecha.");
+    });
+    // Por defecto, la mano derecha ya tiene el boost (botón en verde)
+    document.getElementById("btnRightBoost").style.backgroundColor = "green";
+    
+    // Listener para el botón Help que muestra/oculta la ayuda
+    document.getElementById("btnHelp").addEventListener("click", () => {
+      const helpOverlay = document.getElementById("helpOverlay");
+      const btnHelp = document.getElementById("btnHelp");
+      if (helpOverlay.style.display === "none" || helpOverlay.style.display === "") {
+          if (currentLanguage === "en") {
+              helpOverlay.innerHTML = "DREAM IT is an app that allows you to play without mistakes by correcting errors in real-time, recording your hits and misses while maintaining your original dynamics. Here is the functionality of the main buttons:<br><br> - Choose file: select a .musicxml, .mxl, or .xml file. <br> - Hand buttons: increase the volume of the selected hand by 10%. <br> - Forward and Back: move forward or backward one space in the score. <br> - MIDI Local Control: turn the piano's local control on or off. <br> - Flag buttons: translate the texts to the corresponding language.<br> - Simultaneity selector: threshold in milliseconds at which the app recognizes keys that should sound together, generating a single displacement in the score.";
+          } else {
+              helpOverlay.innerHTML = "DREAM IT, es una app que permite tocar sin errores corrigiendo en tiempo real cualquier error, registrando tus aciertos y fallos y manteniendo tu dinámica original. Aquí tienes la funcionalidad de los botones principales:<br><br> - Elegir archivo: elige un archivo .musicxml, .mxl o .xml. <br> - Botones de manos: incrementa el volumen un 10% la mano seleccionada. <br> - Avanzar y retroceder: avanza o retrocede un espacio en la partitura. <br> - Midi Local Control: enciende o apaga el control local del piano. <br> - Botones de banderas: traduce los textos al idioma correspondiente.<br> - Selector de simultaneidad: umbral en milisegundos en el que la app reconoce teclas que deben sonar juntas, generando un solo desplazamiento en la partitura.";
+          }
+          helpOverlay.style.display = "block";
+          btnHelp.style.backgroundColor = "green";
+      } else {
+          helpOverlay.style.display = "none";
+          btnHelp.style.backgroundColor = "dodgerblue";
+      }
+    });
     
     async function loadAndRender(musicXML) {
       document.getElementById("finalMessage").style.display = "none";
@@ -796,22 +877,51 @@
       }
     });
     
-    function setsEqual(setA, setB) {
-      if (setA.size !== setB.size) return false;
-      for (let a of setA) {
-        if (!setB.has(a)) return false;
+    // Se ha modificado la función para aplicar el boost solo a la mano seleccionada
+    function triggerScoreEvent(velocity) {
+      if (currentEventIndex >= scoreEvents.length) return;
+      let ev = scoreEvents[currentEventIndex];
+      let physicalKeys = Array.from(midiBuffer);
+      
+      // Notas de la mano derecha
+      if (ev.rightHandPitches.length > 0) {
+        activeScoreEvents.push({
+          physicalKeys: physicalKeys.slice(),
+          scoreNotes: ev.rightHandPitches.slice(),
+          hand: "right",
+          pendingRelease: false
+        });
+        let adjustedVelocity = boostHand === "right" ? Math.min(127, velocity * 1.1) : velocity;
+        ev.rightHandPitches.forEach(midi => {
+          if (midiOutput) midiOutput.send([0x90, midi, adjustedVelocity]);
+        });
       }
-      return true;
+      // Notas de la mano izquierda
+      if (ev.leftHandPitches.length > 0) {
+        activeScoreEvents.push({
+          physicalKeys: physicalKeys.slice(),
+          scoreNotes: ev.leftHandPitches.slice(),
+          hand: "left",
+          pendingRelease: false
+        });
+        let adjustedVelocity = boostHand === "left" ? Math.min(127, velocity * 1.1) : velocity;
+        ev.leftHandPitches.forEach(midi => {
+          if (midiOutput) midiOutput.send([0x90, midi, adjustedVelocity]);
+        });
+      }
+      osmd.cursor.next();
+      console.log("Cursor avanzado vía MIDI.");
+      currentEventIndex++;
+      requestAnimationFrame(performScrollUpdate);
+      midiBuffer.clear();
+      if (currentEventIndex >= scoreEvents.length) {
+        showFinalMessage();
+      }
     }
     
-    function setHeaderAndScoreColor(color) {
-      document.querySelector("h1").style.color = color;
-      document.getElementById("scoreboard").style.backgroundColor = color;
-      document.getElementById("score").style.borderColor = color;
-      document.getElementById("score").style.backgroundColor = "white";
-      document.body.style.backgroundColor = color === "green" ? "#ccffcc" : "#ffcccc";
-      document.getElementById("header").style.borderBottomColor = color;
-      document.querySelector(".controls").style.borderBottomColor = color;
+    function updateScoreboard() {
+      const lang = translations[currentLanguage];
+      document.getElementById("scoreboard").textContent = lang.scoreboard(correctCount, errorCount);
     }
     
     function checkUserInput(velocity) {
@@ -831,47 +941,22 @@
       triggerScoreEvent(velocity);
     }
     
-    function updateScoreboard() {
-      const lang = translations[currentLanguage];
-      document.getElementById("scoreboard").textContent = lang.scoreboard(correctCount, errorCount);
+    function setsEqual(setA, setB) {
+      if (setA.size !== setB.size) return false;
+      for (let a of setA) {
+        if (!setB.has(a)) return false;
+      }
+      return true;
     }
     
-    function triggerScoreEvent(velocity) {
-      if (currentEventIndex >= scoreEvents.length) return;
-      let ev = scoreEvents[currentEventIndex];
-      let physicalKeys = Array.from(midiBuffer);
-      
-      if (ev.rightHandPitches.length > 0) {
-        activeScoreEvents.push({
-          physicalKeys: physicalKeys.slice(),
-          scoreNotes: ev.rightHandPitches.slice(),
-          hand: "right",
-          pendingRelease: false
-        });
-        let rightHandVelocity = Math.min(127, velocity * 1.1);
-        ev.rightHandPitches.forEach(midi => {
-          if (midiOutput) midiOutput.send([0x90, midi, rightHandVelocity]);
-        });
-      }
-      if (ev.leftHandPitches.length > 0) {
-        activeScoreEvents.push({
-          physicalKeys: physicalKeys.slice(),
-          scoreNotes: ev.leftHandPitches.slice(),
-          hand: "left",
-          pendingRelease: false
-        });
-        ev.leftHandPitches.forEach(midi => {
-          if (midiOutput) midiOutput.send([0x90, midi, velocity]);
-        });
-      }
-      osmd.cursor.next();
-      console.log("Cursor avanzado vía MIDI.");
-      currentEventIndex++;
-      requestAnimationFrame(performScrollUpdate);
-      midiBuffer.clear();
-      if (currentEventIndex >= scoreEvents.length) {
-        showFinalMessage();
-      }
+    function setHeaderAndScoreColor(color) {
+      document.querySelector("h1").style.color = color;
+      document.getElementById("scoreboard").style.backgroundColor = color;
+      document.getElementById("score").style.borderColor = color;
+      document.getElementById("score").style.backgroundColor = "white";
+      document.body.style.backgroundColor = color === "green" ? "#ccffcc" : "#ffcccc";
+      document.getElementById("header").style.borderBottomColor = color;
+      document.querySelector(".controls").style.borderBottomColor = color;
     }
     
     function showFinalMessage() {
