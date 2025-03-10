@@ -52,6 +52,23 @@
       transform: scaleY(0.8);
       transform-origin: center;
     }
+    /* Contenedor del botón de ayuda, ubicado justo debajo de las banderas y alineado a la derecha */
+    #helpContainer {
+      position: absolute;
+      top: 50px;
+      right: 20px;
+    }
+    /* Estilo del botón de ayuda: redondeado y azul, igual que el resto */
+    #btnHelp {
+      margin: 5px;
+      padding: 8px 12px;
+      border: none;
+      cursor: pointer;
+      font-family: sans-serif;
+      color: white;
+      border-radius: 8px;
+      background-color: dodgerblue;
+    }
     /* Subcabecera con tres secciones: izquierda, centro y derecha */
     .subheader {
       display: flex;
@@ -125,7 +142,6 @@
       justify-content: center;
       align-items: center;
     }
-
     #fileLabel {
       padding: 8px 12px;
       background-color: green;
@@ -227,6 +243,10 @@
         <img src="https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/Flag_of_the_United_Kingdom.svg/32px-Flag_of_the_United_Kingdom.svg.png" alt="English">
       </button>
     </div>
+    <!-- Botón de ayuda ubicado justo debajo de las banderas -->
+    <div id="helpContainer">
+      <button id="btnHelp">Ayuda</button>
+    </div>
     <div class="subheader">
       <div class="left-side"> 
         <div id="scoreboard">ACIERTOS: 0 | ERRORES: 0</div>
@@ -248,7 +268,7 @@
     </div>
     <div class="middle-control">
       <button id="btnLeftBoost">M. Izquierda 🔊</button>
-      <button id="btnRetroceder">◀ Retroceder</button>
+      <button id="btnRetroceder">◀</button>
       <span id="simultaneityLabel">Intervalo de simultaneidad (ms):</span>
       <select id="simultaneitySelector">
         <option value="25">&lt; 25 ms</option>
@@ -256,12 +276,11 @@
         <option value="75">&lt; 75 ms</option>
         <option value="100">&lt; 100 ms</option>
       </select>
-      <button id="btnAvanzar">▶ Avanzar</button>
+      <button id="btnAvanzar">▶</button>
       <button id="btnRightBoost">M. Derecha 🔊</button>
-      <button id="btnHelp">Help</button>
     </div>
     <div class="right-control">
-      <button id="toggleLocal">MIDI Local Control: OFF</button>
+      <button id="toggleLocal">Local Control: OFF</button>
     </div>
   </div>
   
@@ -292,12 +311,13 @@
         btnAvanzar: "▶",
         btnLeftBoost: "M. Izquierda 🔊",
         btnRightBoost: "M. Derecha 🔊",
-        toggleLocal_off: "MIDI Local Control: OFF",
-        toggleLocal_on: "MIDI Local Control: ON",
+        toggleLocal_off: "Local Control: OFF",
+        toggleLocal_on: "Local Control: ON",
         midiInfo_noDetected: "Dispositivo MIDI: No detectado",
         midiInfo_notValid: "Dispositivo MIDI: NO VALIDO",
         finalSuffix: (percentage) => ` (Aciertos: ${percentage}%)`,
-        simultaneityLabel: "Teclas simultáneas (ms):"
+        simultaneityLabel: "Teclas simultáneas (ms):",
+        btnHelp: "Ayuda"
       },
       en: {
         scoreboard: (correct, error) => `HITS: ${correct} | ERRORS: ${error}`,
@@ -306,12 +326,13 @@
         btnAvanzar: "▶",
         btnLeftBoost: "L. Hand 🔊",
         btnRightBoost: "R. Hand 🔊",
-        toggleLocal_off: "MIDI Local Control: OFF",
-        toggleLocal_on: "MIDI Local Control: ON",
+        toggleLocal_off: "Local Control: OFF",
+        toggleLocal_on: "Local Control: ON",
         midiInfo_noDetected: "MIDI Device: Not detected",
         midiInfo_notValid: "MIDI Device: NOT VALID",
         finalSuffix: (percentage) => ` (Hits: ${percentage}%)`,
-        simultaneityLabel: "Simultaneous keys (ms):"
+        simultaneityLabel: "Simultaneous keys (ms):",
+        btnHelp: "Help"
       }
     };
 
@@ -553,6 +574,7 @@
       document.getElementById("simultaneityLabel").textContent = lang.simultaneityLabel;
       document.getElementById("btnLeftBoost").textContent = lang.btnLeftBoost;
       document.getElementById("btnRightBoost").textContent = lang.btnRightBoost;
+      document.getElementById("btnHelp").textContent = lang.btnHelp;
       
       const midiInfo = document.getElementById("midiInfo");
       if (midiOutput) {
@@ -655,7 +677,7 @@
     // Por defecto, la mano derecha ya tiene el boost (botón en verde)
     document.getElementById("btnRightBoost").style.backgroundColor = "green";
     
-    // Listener para el botón Help que muestra/oculta la ayuda
+    // Listener para el botón de ayuda que muestra/oculta la ayuda
     document.getElementById("btnHelp").addEventListener("click", () => {
       const helpOverlay = document.getElementById("helpOverlay");
       const btnHelp = document.getElementById("btnHelp");
