@@ -228,6 +228,22 @@
       z-index: 3000;
       display: none;
     }
+    /* NUEVO: Estilo para mini botones boost */
+    .miniBoost {
+      font-size: 0.7em;
+      margin-left: 2px;
+      padding: 2px 4px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: lightgray;
+    }
+    /* NUEVO: Contenedor para boost de cada mano */
+    .boostContainer {
+      display: inline-flex;
+      align-items: center;
+      margin: 0 10px;
+    }
   </style>
 </head>
 <body>
@@ -245,7 +261,7 @@
     </div>
     <!-- Botón de ayuda ubicado justo debajo de las banderas -->
     <div id="helpContainer">
-      <button id="btnHelp">Ayuda</button>
+      <button id="btnHelp">Help</button>
     </div>
     <div class="subheader">
       <div class="left-side"> 
@@ -267,7 +283,12 @@
       <input type="file" id="fileInput" accept=".xml,.musicxml,.mxl">
     </div>
     <div class="middle-control">
-      <button id="btnLeftBoost">M. Izquierda 🔊</button>
+      <!-- NUEVO: Contenedor boost para mano izquierda -->
+      <div id="leftBoostContainer" class="boostContainer">
+        <button id="btnLeftBoost">M. Izquierda 🔊</button>
+        <button id="btnLeftBoostPlus" class="miniBoost">+</button>
+        <button id="btnLeftBoostMinus" class="miniBoost">–</button>
+      </div>
       <button id="btnRetroceder">◀</button>
       <span id="simultaneityLabel">Intervalo de simultaneidad (ms):</span>
       <select id="simultaneitySelector">
@@ -277,7 +298,12 @@
         <option value="100">&lt; 100 ms</option>
       </select>
       <button id="btnAvanzar">▶</button>
-      <button id="btnRightBoost">M. Derecha 🔊</button>
+      <!-- NUEVO: Contenedor boost para mano derecha -->
+      <div id="rightBoostContainer" class="boostContainer">
+        <button id="btnRightBoost">M. Derecha 🔊</button>
+        <button id="btnRightBoostPlus" class="miniBoost">+</button>
+        <button id="btnRightBoostMinus" class="miniBoost">–</button>
+      </div>
     </div>
     <div class="right-control">
       <button id="toggleLocal">Local Control: OFF</button>
@@ -303,29 +329,33 @@
     // Variable para seleccionar la mano que se refuerza (por defecto "right")
     let boostHand = "right";
     
+    // NUEVO: Variables para el factor de boost (volumen)
+    let leftBoostVolume = 1.0;   // 100%
+    let rightBoostVolume = 1.1;  // 110%
+
     const translations = {
       es: {
         scoreboard: (correct, error) => `ACIERTOS: ${correct} | ERRORES: ${error}`,
         fileLabel: "Elegir archivo",
-        btnRetroceder: "◀",
-        btnAvanzar: "▶",
-        btnLeftBoost: "M. Izquierda 🔊",
-        btnRightBoost: "M. Derecha 🔊",
+        btnRetroceder: "◀ RW",
+        btnAvanzar: "FF ▶",
+        btnLeftBoost: "M.I. 🔊",
+        btnRightBoost: "M.D. 🔊",
         toggleLocal_off: "Local Control: OFF",
         toggleLocal_on: "Local Control: ON",
         midiInfo_noDetected: "Dispositivo MIDI: No detectado",
         midiInfo_notValid: "Dispositivo MIDI: NO VALIDO",
         finalSuffix: (percentage) => ` (Aciertos: ${percentage}%)`,
         simultaneityLabel: "Teclas simultáneas (ms):",
-        btnHelp: "Ayuda"
+        btnHelp: "Help"
       },
       en: {
         scoreboard: (correct, error) => `HITS: ${correct} | ERRORS: ${error}`,
         fileLabel: "Choose file",
-        btnRetroceder: "◀",
-        btnAvanzar: "▶",
-        btnLeftBoost: "L. Hand 🔊",
-        btnRightBoost: "R. Hand 🔊",
+        btnRetroceder: "◀ RW",
+        btnAvanzar: "FF ▶",
+        btnLeftBoost: "L.H. 🔊",
+        btnRightBoost: "R.H. 🔊",
         toggleLocal_off: "Local Control: OFF",
         toggleLocal_on: "Local Control: ON",
         midiInfo_noDetected: "MIDI Device: Not detected",
@@ -561,6 +591,8 @@
     let errorCount = 0;
     
     updateLanguage();
+    updateBoostButtonText("left");  // NUEVO: inicializa texto del botón izquierdo
+    updateBoostButtonText("right"); // NUEVO: inicializa texto del botón derecho
     
     function updateLanguage() {
       const lang = translations[currentLanguage];
@@ -572,16 +604,6 @@
       document.getElementById("btnAvanzar").textContent = lang.btnAvanzar;
       document.getElementById("toggleLocal").textContent = localControlEnabled ? lang.toggleLocal_on : lang.toggleLocal_off;
       document.getElementById("simultaneityLabel").textContent = lang.simultaneityLabel;
-      document.getElementById("btnLeftBoost").textContent = lang.btnLeftBoost;
-      document.getElementById("btnRightBoost").textContent = lang.btnRightBoost;
-      document.getElementById("btnHelp").textContent = lang.btnHelp;
-      
-      const midiInfo = document.getElementById("midiInfo");
-      if (midiOutput) {
-        midiInfo.textContent = lang.midiInfo_noDetected.replace(currentLanguage === 'es' ? "No detectado" : "Not detected", midiOutput.name);
-      } else {
-        midiInfo.textContent = lang.midiInfo_noDetected;
-      }
       
       // Actualiza el mensaje final si se está mostrando
       const finalDiv = document.getElementById("finalMessage");
@@ -599,9 +621,9 @@
       const helpOverlay = document.getElementById("helpOverlay");
       if (helpOverlay.style.display !== "none" && helpOverlay.style.display !== "") {
         if (currentLanguage === "en") {
-          helpOverlay.innerHTML = "DREAM IT is an app that allows you to play without mistakes by correcting errors in real-time, recording your hits and misses while maintaining your original dynamics. Here is the functionality of the main buttons:<br><br> - Choose file: select a .musicxml, .mxl, or .xml file. <br> - Hand buttons: increase the volume of the selected hand by 10%. <br> - Forward and Back: move forward or backward one space in the score. <br> - MIDI Local Control: turn the piano's local control on or off. <br> - Flag buttons: translate the texts to the corresponding language.<br> - Simultaneity selector: threshold in milliseconds at which the app recognizes keys that should sound together, generating a single displacement in the score.<br><br> Enjoy DREAM IT and improve your musical expressiveness without worrying about reading notes! 😉";
+          helpOverlay.innerHTML = "DREAM IT is an app that allows you to play without mistakes by correcting errors in real-time, recording your hits and misses while maintaining your original dynamics. Here is the functionality of the main buttons:<br><br> - Choose file: select a .musicxml, .mxl, or .xml file. <br> - Hand +/- buttons: increase or decrease the volume of the selected hand by 10%. <br> - Forward and Back: move forward or backward one space in the score. <br> - MIDI Local Control: turn the piano's local control on or off. <br> - Flag buttons: translate the texts to the corresponding language.<br> - Simultaneity selector: threshold in milliseconds at which the app recognizes keys that should sound together, generating a single displacement in the score.<br><br> Enjoy DREAM IT and improve your musical expressiveness without worrying about reading notes! 😉";
         } else {
-          helpOverlay.innerHTML = "DREAM IT, es una app que permite tocar sin errores corrigiendo en tiempo real cualquier error, registrando tus aciertos y fallos y manteniendo tu dinámica original. Aquí tienes la funcionalidad de los botones principales:<br><br> - Elegir archivo: elige un archivo .musicxml, .mxl o .xml. <br> - Botones de manos: incrementa el volumen un 10% la mano seleccionada. <br> - Avanzar y retroceder: avanza o retrocede un espacio en la partitura. <br> - Midi Local Control: enciende o apaga el control local del piano. <br> - Botones de banderas: traduce los textos al idioma correspondiente.<br> - Selector de simultaneidad: umbral en milisegundos en el que la app reconoce teclas que deben sonar juntas, generando un solo desplazamiento en la partitura. <br><br>¡Disfruta de DREAM IT y mejora tu expresividad musical sin preocuparte de la lectura de notas! 😉";
+          helpOverlay.innerHTML = "DREAM IT, es una app que permite tocar sin errores corrigiendo en tiempo real cualquier error, registrando tus aciertos y fallos y manteniendo tu dinámica original. Aquí tienes la funcionalidad de los botones principales:<br><br> - Elegir archivo: elige un archivo .musicxml, .mxl o .xml. <br> - Botones + y - de las manos: incrementa o disminuye el volumen de la mano seleccionada un 10%. <br> - Avanzar y retroceder: avanza o retrocede un espacio en la partitura. <br> - Midi Local Control: enciende o apaga el control local del piano. <br> - Botones de banderas: traduce los textos al idioma correspondiente.<br> - Selector de simultaneidad: umbral en milisegundos en el que la app reconoce teclas que deben sonar juntas, generando un solo desplazamiento en la partitura.<br><br>¡Disfruta de DREAM IT y mejora tu expresividad musical sin preocuparte de la lectura de notas! 😉";
         }
       }
     }
@@ -610,11 +632,15 @@
     document.getElementById("btn_es").addEventListener("click", function() {
       currentLanguage = 'es';
       updateLanguage();
+      updateBoostButtonText("left");
+      updateBoostButtonText("right");
     });
     
     document.getElementById("btn_en").addEventListener("click", function() {
       currentLanguage = 'en';
       updateLanguage();
+      updateBoostButtonText("left");
+      updateBoostButtonText("right");
     });
     
     // Listener para el selector de simultaneidad
@@ -660,22 +686,59 @@
     });
     updateLocalControl();
     
-    // Listeners para los botones de boost de mano
-    document.getElementById("btnLeftBoost").addEventListener("click", () => {
-      boostHand = "left";
-      document.getElementById("btnLeftBoost").style.backgroundColor = "green";
-      document.getElementById("btnRightBoost").style.backgroundColor = "dodgerblue";
-      console.log("Boost activado para la mano izquierda.");
-    });
-    
-    document.getElementById("btnRightBoost").addEventListener("click", () => {
-      boostHand = "right";
-      document.getElementById("btnRightBoost").style.backgroundColor = "green";
-      document.getElementById("btnLeftBoost").style.backgroundColor = "dodgerblue";
-      console.log("Boost activado para la mano derecha.");
-    });
+    ;
     // Por defecto, la mano derecha ya tiene el boost (botón en verde)
     document.getElementById("btnRightBoost").style.backgroundColor = "green";
+    
+    // NUEVO: Listeners para mini botones de la mano izquierda
+    document.getElementById("btnLeftBoostPlus").addEventListener("click", (e) => {
+      e.stopPropagation(); // evita que se dispare el listener del contenedor principal
+      leftBoostVolume += 0.1;
+      boostHand = "left";
+      updateBoostButtonText("left");
+      document.getElementById("btnLeftBoost").style.backgroundColor = "green";
+      document.getElementById("btnRightBoost").style.backgroundColor = "dodgerblue";
+    });
+    document.getElementById("btnLeftBoostMinus").addEventListener("click", (e) => {
+      e.stopPropagation();
+      leftBoostVolume -= 0.1;
+      boostHand = "left";
+      updateBoostButtonText("left");
+      document.getElementById("btnLeftBoost").style.backgroundColor = "green";
+      document.getElementById("btnRightBoost").style.backgroundColor = "dodgerblue";
+    });
+    
+    // NUEVO: Listeners para mini botones de la mano derecha
+    document.getElementById("btnRightBoostPlus").addEventListener("click", (e) => {
+      e.stopPropagation();
+      rightBoostVolume += 0.1;
+      boostHand = "right";
+      updateBoostButtonText("right");
+      document.getElementById("btnRightBoost").style.backgroundColor = "green";
+      document.getElementById("btnLeftBoost").style.backgroundColor = "dodgerblue";
+    });
+    document.getElementById("btnRightBoostMinus").addEventListener("click", (e) => {
+      e.stopPropagation();
+      rightBoostVolume -= 0.1;
+      boostHand = "right";
+      updateBoostButtonText("right");
+      document.getElementById("btnRightBoost").style.backgroundColor = "green";
+      document.getElementById("btnLeftBoost").style.backgroundColor = "dodgerblue";
+    });
+    
+    // NUEVO: Función para actualizar el texto del botón de boost según el factor
+    function updateBoostButtonText(hand) {
+      const lang = translations[currentLanguage];
+      if (hand === "left") {
+        let percentage = Math.round((leftBoostVolume - 1) * 100);
+        let sign = percentage >= 0 ? `(+${percentage}%)` : `(${percentage}%)`;
+        document.getElementById("btnLeftBoost").textContent = lang.btnLeftBoost + " " + sign;
+      } else if (hand === "right") {
+        let percentage = Math.round((rightBoostVolume - 1) * 100);
+        let sign = percentage >= 0 ? `(+${percentage}%)` : `(${percentage}%)`;
+        document.getElementById("btnRightBoost").textContent = lang.btnRightBoost + " " + sign;
+      }
+    }
     
     // Listener para el botón de ayuda que muestra/oculta la ayuda
     document.getElementById("btnHelp").addEventListener("click", () => {
@@ -683,9 +746,9 @@
       const btnHelp = document.getElementById("btnHelp");
       if (helpOverlay.style.display === "none" || helpOverlay.style.display === "") {
           if (currentLanguage === "en") {
-              helpOverlay.innerHTML = "DREAM IT is an app that allows you to play without mistakes by correcting errors in real-time, recording your hits and misses while maintaining your original dynamics. Here is the functionality of the main buttons:<br><br> - Choose file: select a .musicxml, .mxl, or .xml file. <br> - Hand buttons: increase the volume of the selected hand by 10%. <br> - Forward and Back: move forward or backward one space in the score. <br> - MIDI Local Control: turn the piano's local control on or off. <br> - Flag buttons: translate the texts to the corresponding language.<br> - Simultaneity selector: threshold in milliseconds at which the app recognizes keys that should sound together, generating a single displacement in the score.<br><br> Enjoy DREAM IT and improve your musical expressiveness without worrying about reading notes! 😉";
+              helpOverlay.innerHTML = "DREAM IT is an app that allows you to play without mistakes by correcting errors in real-time, recording your hits and misses while maintaining your original dynamics. Here is the functionality of the main buttons:<br><br> - Choose file: select a .musicxml, .mxl, or .xml file. <br> - Hand +/- buttons: increase or decrease the volume of the selected hand by 10%. <br> - Forward and Back: move forward or backward one space in the score. <br> - MIDI Local Control: turn the piano's local control on or off. <br> - Flag buttons: translate the texts to the corresponding language.<br> - Simultaneity selector: threshold in milliseconds at which the app recognizes keys that should sound together, generating a single displacement in the score.<br><br> Enjoy DREAM IT and improve your musical expressiveness without worrying about reading notes! 😉";
           } else {
-              helpOverlay.innerHTML = "DREAM IT, es una app que permite tocar sin errores corrigiendo en tiempo real cualquier error, registrando tus aciertos y fallos y manteniendo tu dinámica original. Aquí tienes la funcionalidad de los botones principales:<br><br> - Elegir archivo: elige un archivo .musicxml, .mxl o .xml. <br> - Botones de manos: incrementa el volumen un 10% la mano seleccionada. <br> - Avanzar y retroceder: avanza o retrocede un espacio en la partitura. <br> - Midi Local Control: enciende o apaga el control local del piano. <br> - Botones de banderas: traduce los textos al idioma correspondiente.<br> - Selector de simultaneidad: umbral en milisegundos en el que la app reconoce teclas que deben sonar juntas, generando un solo desplazamiento en la partitura.<br><br>¡Disfruta de DREAM IT y mejora tu expresividad musical sin preocuparte de la lectura de notas! 😉";
+              helpOverlay.innerHTML = "DREAM IT, es una app que permite tocar sin errores corrigiendo en tiempo real cualquier error, registrando tus aciertos y fallos y manteniendo tu dinámica original. Aquí tienes la funcionalidad de los botones principales:<br><br> - Elegir archivo: elige un archivo .musicxml, .mxl o .xml. <br> - Botones + y - de las manos: incrementa o disminuye el volumen de la mano seleccionada un 10%. <br> - Avanzar y retroceder: avanza o retrocede un espacio en la partitura. <br> - Midi Local Control: enciende o apaga el control local del piano. <br> - Botones de banderas: traduce los textos al idioma correspondiente.<br> - Selector de simultaneidad: umbral en milisegundos en el que la app reconoce teclas que deben sonar juntas, generando un solo desplazamiento en la partitura.<br><br>¡Disfruta de DREAM IT y mejora tu expresividad musical sin preocuparte de la lectura de notas! 😉";
           }
           helpOverlay.style.display = "block";
           btnHelp.style.backgroundColor = "green";
@@ -899,7 +962,7 @@
       }
     });
     
-    // Se ha modificado la función para aplicar el boost solo a la mano seleccionada
+    // MODIFICADO: Se ajusta la función para aplicar el boost según el factor asignado
     function triggerScoreEvent(velocity) {
       if (currentEventIndex >= scoreEvents.length) return;
       let ev = scoreEvents[currentEventIndex];
@@ -913,7 +976,7 @@
           hand: "right",
           pendingRelease: false
         });
-        let adjustedVelocity = boostHand === "right" ? Math.min(127, velocity * 1.1) : velocity;
+        let adjustedVelocity = boostHand === "right" ? Math.min(127, velocity * rightBoostVolume) : velocity;
         ev.rightHandPitches.forEach(midi => {
           if (midiOutput) midiOutput.send([0x90, midi, adjustedVelocity]);
         });
@@ -926,7 +989,7 @@
           hand: "left",
           pendingRelease: false
         });
-        let adjustedVelocity = boostHand === "left" ? Math.min(127, velocity * 1.1) : velocity;
+        let adjustedVelocity = boostHand === "left" ? Math.min(127, velocity * leftBoostVolume) : velocity;
         ev.leftHandPitches.forEach(midi => {
           if (midiOutput) midiOutput.send([0x90, midi, adjustedVelocity]);
         });
