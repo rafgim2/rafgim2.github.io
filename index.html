@@ -934,18 +934,21 @@
   if (cursorEl) {
     let rect = cursorEl.getBoundingClientRect();
     let cursorCenter = rect.top + rect.height / 2;
-    let viewportTarget = window.innerHeight * 0.5; // valor por defecto para vertical
-
-    // Si está en horizontal
-    if (window.matchMedia("(orientation: landscape)").matches) {
-      // Si es un móvil (por ejemplo, ancho menor a 768px)
-      if (window.innerHeight < 768) {
-        viewportTarget = window.innerHeight * 0.75;
-      } else {
-        // Para tablets u otros dispositivos más anchos, mantener el valor original o ajustarlo según convenga
-        viewportTarget = window.innerHeight * 0.5;
-      }
+    
+    // Detectar si es un móvil en orientación horizontal:
+    let isMobile = /Mobi/.test(navigator.userAgent);
+    let isHorizontal = window.innerWidth > window.innerHeight;
+    
+    // Usar un factor de posición diferente en móviles horizontales
+    let viewportTarget = isMobile && isHorizontal ? window.innerHeight * 0.75 : window.innerHeight * 0.5;
+    
+    let diff = cursorCenter - viewportTarget;
+    if (Math.abs(diff) > 20) {
+      window.scrollBy({ top: diff, behavior: 'smooth' });
     }
+  }
+}
+
     
     let diff = cursorCenter - viewportTarget;
     if (Math.abs(diff) > 20) {
