@@ -941,7 +941,7 @@
     let isHorizontal = window.innerWidth > window.innerHeight;
     
     // Usar un factor de posición diferente en móviles horizontales
-    let viewportTarget = isMobile && isHorizontal ? window.innerHeight * 0.7 : window.innerHeight * 0.5;
+    let viewportTarget = isMobile && isHorizontal ? window.innerHeight * 0.75 : window.innerHeight * 0.5;
     
     let diff = cursorCenter - viewportTarget;
     if (Math.abs(diff) > 20) {
