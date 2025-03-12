@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -930,35 +931,17 @@
     }
     
     function performScrollUpdate() {
-  let cursorEl = osmd.cursor.cursorElement || document.querySelector('.osmd-cursor');
-  if (cursorEl) {
-    let rect = cursorEl.getBoundingClientRect();
-    let cursorCenter = rect.top + rect.height / 2;
-    
-    // Detectar si es un móvil en orientación horizontal:
-    let isMobile = /Mobi/.test(navigator.userAgent);
-    let isHorizontal = window.innerWidth > window.innerHeight;
-    
-    // Usar un factor de posición diferente en móviles horizontales
-    let viewportTarget = isMobile && isHorizontal ? window.innerHeight * 0.75 : window.innerHeight * 0.5;
-    
-    let diff = cursorCenter - viewportTarget;
-    if (Math.abs(diff) > 20) {
-      window.scrollBy({ top: diff, behavior: 'smooth' });
+      let cursorEl = osmd.cursor.cursorElement || document.querySelector('.osmd-cursor');
+      if (cursorEl) {
+        let rect = cursorEl.getBoundingClientRect();
+        let cursorCenter = rect.top + rect.height / 2;
+        let viewportTarget = window.innerHeight * 0.5;
+        let diff = cursorCenter - viewportTarget;
+        if (Math.abs(diff) > 20) {
+          window.scrollBy({ top: diff, behavior: 'smooth' });
+        }
+      }
     }
-  }
-}
-
-    
-    let diff = cursorCenter - viewportTarget;
-    if (Math.abs(diff) > 20) {
-      window.scrollBy({ top: diff, behavior: 'smooth' });
-    }
-  }
-}
-
-
-
     
     document.getElementById("btnAvanzar").addEventListener("click", () => {
       if (gameEnded) return;
