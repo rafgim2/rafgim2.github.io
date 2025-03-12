@@ -939,7 +939,7 @@
     // Si está en horizontal
     if (window.matchMedia("(orientation: landscape)").matches) {
       // Si es un móvil (por ejemplo, ancho menor a 768px)
-      if (window.innerWidth < 768) {
+      if (window.innerHeight < 768) {
         viewportTarget = window.innerHeight * 0.75;
       } else {
         // Para tablets u otros dispositivos más anchos, mantener el valor original o ajustarlo según convenga
