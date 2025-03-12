@@ -934,14 +934,17 @@
   if (cursorEl) {
     let rect = cursorEl.getBoundingClientRect();
     let cursorCenter = rect.top + rect.height / 2;
-    let viewportTarget;
-    
-    // Detectar orientación: si la anchura es mayor que la altura, se asume horizontal.
+    let viewportTarget = window.innerHeight * 0.5; // valor por defecto
+
+    // Si el dispositivo está en horizontal (ancho > alto)
     if (window.innerWidth > window.innerHeight) {
-      // En horizontal, se ajusta para que el scroll deje la partitura más centrada verticalmente.
-      viewportTarget = window.innerHeight * 0.75;
-    } else {
-      viewportTarget = window.innerHeight * 0.5;
+      // Si se detecta un móvil (por ejemplo, menos de 768px de ancho)
+      if (window.innerWidth < 768) {
+        viewportTarget = window.innerHeight * 0.75;
+      } else {
+        // Para tablets, se mantiene el valor original (o se puede ajustar a otro, por ejemplo, 0.6)
+        viewportTarget = window.innerHeight * 0.5;
+      }
     }
     
     let diff = cursorCenter - viewportTarget;
@@ -950,6 +953,7 @@
     }
   }
 }
+
 
     
     document.getElementById("btnAvanzar").addEventListener("click", () => {
