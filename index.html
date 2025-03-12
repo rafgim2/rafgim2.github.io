@@ -934,15 +934,15 @@
   if (cursorEl) {
     let rect = cursorEl.getBoundingClientRect();
     let cursorCenter = rect.top + rect.height / 2;
-    let viewportTarget = window.innerHeight * 0.5; // valor por defecto
+    let viewportTarget = window.innerHeight * 0.5; // valor por defecto para vertical
 
-    // Si el dispositivo está en horizontal (ancho > alto)
-    if (window.innerWidth > window.innerHeight) {
-      // Si se detecta un móvil (por ejemplo, menos de 768px de ancho)
+    // Si está en horizontal
+    if (window.matchMedia("(orientation: landscape)").matches) {
+      // Si es un móvil (por ejemplo, ancho menor a 768px)
       if (window.innerWidth < 768) {
-        viewportTarget = window.innerHeight * 0.95;
+        viewportTarget = window.innerHeight * 0.7;
       } else {
-        // Para tablets, se mantiene el valor original (o se puede ajustar a otro, por ejemplo, 0.6)
+        // Para tablets u otros dispositivos más anchos, mantener el valor original o ajustarlo según convenga
         viewportTarget = window.innerHeight * 0.5;
       }
     }
@@ -953,6 +953,7 @@
     }
   }
 }
+
 
 
     
