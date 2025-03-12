@@ -934,12 +934,16 @@
   if (cursorEl) {
     let rect = cursorEl.getBoundingClientRect();
     let cursorCenter = rect.top + rect.height / 2;
-    // Valor base: 50% de la altura de la ventana
-    let viewportTarget = window.innerHeight * 0.5;
-    // Ajuste para móviles: si el ancho es menor a 768px, usar un valor mayor (por ejemplo, 70%)
-    if (window.innerWidth < 768) {
-      viewportTarget = window.innerHeight * 0.9;
+    let viewportTarget;
+    
+    // Detectar orientación: si la anchura es mayor que la altura, se asume horizontal.
+    if (window.innerWidth > window.innerHeight) {
+      // En horizontal, se ajusta para que el scroll deje la partitura más centrada verticalmente.
+      viewportTarget = window.innerHeight * 0.7;
+    } else {
+      viewportTarget = window.innerHeight * 0.5;
     }
+    
     let diff = cursorCenter - viewportTarget;
     if (Math.abs(diff) > 20) {
       window.scrollBy({ top: diff, behavior: 'smooth' });
