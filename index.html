@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -22,7 +21,7 @@
       padding: 10px 20px;
     }
     #header h1 {
-      margin: 0;
+      margin-top: -10px;
       font-size: 3em;
       font-family: Segoe UI Black, Haettenschweiler, "Arial Narrow Bold", sans-serif;
       color: #00008B;
@@ -245,6 +244,10 @@
       align-items: center;
       margin: 0 10px;
     }
+body {
+  zoom: 0.9;
+}
+
   </style>
 </head>
 <body>
@@ -269,7 +272,29 @@
         <div id="scoreboard">ACIERTOS: 0 | ERRORES: 0</div>
       </div>
       <div class="center-side">
-        © <a href="https://www.youtube.com/@rafgim" target="_blank">by Rafael Gimeno</a>
+         <a href="https://www.youtube.com/@rafgim" target="_blank" style="color: darkblue;">© by Rafael Gimeno</a>
+
+        <!-- NUEVO: Selector de partituras de muestra -->
+        <br>
+        <label for="sampleScores" style="font-size:0.9em; margin-top: 5px; display: block;">Partituras de muestra:</label>
+
+<select id="sampleScores" style="font-size:0.9em; text-align: center; text-align-last: center;">          <option value="">-- Seleccionar --</option>
+          <option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/Bach%20Minuet%20in%20G%20major.musicxml">Bach Minuet in G major</option>
+          <option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/Bach%20Musette%20in%20D%20major.musicxml">Bach Musette in D major</option>
+          <option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/Bach%20Prelude%20in%20C%20Major.musicxml">Bach Prelude in C Major</option>
+          <option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/Bach%20Prelude%20in%20C%20Minor.musicxml">Bach Prelude in C Minor</option>
+          <option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/Beethoven%20Moonlight%20Sonata%201st%20mov.musicxml">Beethoven Moonlight Sonata 1st mov</option>
+          <option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/Chopin%20Waltz%20in%20C%20minor.mxl">Chopin Waltz in C minor</option>
+          <option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/Clementi%20Sonatina.musicxml">Clementi Sonatina nº1 op.36</option>
+<option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/Handel-Havorsen%20Passacaglia.musicxml">Handel-Halvorsen Passacaglia</option>
+          <option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/Fading%20lights.musicxml">Rafael Gimeno Fading lights</option>
+          
+          <option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/R.%20Gimeno%20Dream%20n%C2%BA1.musicxml">Rafael Gimeno Dream nº1</option>
+          <option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/R.%20Gimeno%20Red%20Threads.musicxml">Rafael Gimeno Red Threads</option>
+          <option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/R.%20Korsakov%20Flight%20of%20the%20Bumblebee.mxl">R. Korsakov Flight of the Bumblebee</option>
+          <option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/Rachmaninof%20Concert%20n%C2%BA2%20(3rd%20mov).musicxml">Rachmaninof Concert nº2 (3rd mov)</option>
+          <option value="https://raw.githubusercontent.com/rafgim2/rafgim2.github.io/main/Satie%20Gymnopedie%20n%C2%BA1.musicxml">Satie Gymnopedie nº1</option>
+        </select>
       </div>
       <div class="right-side">
         <div id="midiInfo">Dispositivo MIDI: No detectado</div>
@@ -337,7 +362,7 @@
     const translations = {
       es: {
         scoreboard: (correct, error) => `ACIERTOS: ${correct} | ERRORES: ${error}`,
-        fileLabel: "Elegir Archivo:",
+        fileLabel: "Cargar Archivo:",
         btnRetroceder: "◀ RW",
         btnAvanzar: "FF ▶",
         btnLeftBoost: "M.I. 🔊",
@@ -348,11 +373,12 @@
         midiInfo_notValid: "Dispositivo MIDI: NO VALIDO",
         finalSuffix: (percentage) => ` (Aciertos: ${percentage}%)`,
         simultaneityLabel: "",
+sampleScoresLabel: "Partituras de muestra:",
         btnHelp: "Help"
       },
       en: {
         scoreboard: (correct, error) => `HITS: ${correct} | ERRORS: ${error}`,
-        fileLabel: "Choose File:",
+        fileLabel: "Load File:",
         btnRetroceder: "◀ RW",
         btnAvanzar: "FF ▶",
         btnLeftBoost: "L.H. 🔊",
@@ -363,6 +389,7 @@
         midiInfo_notValid: "MIDI Device: NOT VALID",
         finalSuffix: (percentage) => ` (Hits: ${percentage}%)`,
         simultaneityLabel: "",
+sampleScoresLabel: "Sample Scores:",
         btnHelp: "Help"
       }
     };
@@ -436,7 +463,7 @@
       "¡A reír se ha dicho! La partitura aprecia tu autenticidad.",
       "¡Qué simpático! Aunque no aciertes, lo haces con estilo.",
       "¡Pura improvisación! Tus errores son parte del encanto.",
-      "¡Ríe y sigue! La música te sonríe, incluso en los tropiezos.",
+      "¡Sigue! La música te sonríe, incluso en los tropiezos.",
       "¡Menos mal que es solo música! Cada error te enseña algo nuevo.",
       "¡Sigue adelante! La risa es la mejor respuesta a un fallo.",
       "¡Bien jugado! Tus errores hacen la actuación memorable.",
@@ -456,7 +483,7 @@
       "¡Tus errores tienen su propio ritmo, y eso es genial!",
       "¡La risa es parte del arte! Sigue tocando y aprendiendo.",
       "¡Continúa en el camino! Cada error te hace único y divertido.",
-      "¡No te detengas! La música es una comedia de la vida, sigue adelante!",
+      "¡No te detengas! La música es una comedia de la vida, ¡sigue adelante!",
       "¡Una lección en cada compás, y la risa nunca falta!",
       "¡Fabuloso! Con más del 90 % de aciertos, ¡eres un prodigio musical!",
       "¡Increíble! Más del 90 % de aciertos; la orquesta te aclama.",
@@ -687,7 +714,6 @@
     });
     updateLocalControl();
     
-    ;
     // Por defecto, la mano derecha ya tiene el boost (botón en verde)
     document.getElementById("btnRightBoost").style.backgroundColor = "green";
     
@@ -747,9 +773,9 @@
       const btnHelp = document.getElementById("btnHelp");
       if (helpOverlay.style.display === "none" || helpOverlay.style.display === "") {
           if (currentLanguage === "en") {
-              helpOverlay.innerHTML = "DREAM IT is an app that allows you to play without mistakes by correcting errors in real-time, recording your hits and misses while maintaining your original dynamics. Here is the functionality of the main buttons:<br><br> - Choose file: select a .musicxml, .mxl, or .xml file. <br> - Hand +/- buttons: increase or decrease the volume of the selected hand by 10%. <br> - Forward and Back: move forward or backward one space in the score. <br> - MIDI Local Control: turn the piano's local control on or off. <br> - Flag buttons: translate the texts to the corresponding language.<br> - Simultaneity selector: threshold in milliseconds at which the app recognizes keys that should sound together, generating a single displacement in the score.<br><br> Enjoy DREAM IT and improve your musical expressiveness without worrying about reading notes! 😉";
+              helpOverlay.innerHTML = "DREAM IT is an app that allows you to play without mistakes by correcting errors in real-time, recording your hits and misses while maintaining your original dynamics. Here is the functionality of the main buttons:<br><br> - Load file: select a .musicxml, .mxl, or .xml file. <br> - Hand +/- buttons: increase or decrease the volume of the selected hand by 10%. <br> - Forward and Back: move forward or backward one space in the score. <br> - MIDI Local Control: turn the piano's local control on or off. <br> - Flag buttons: translate the texts to the corresponding language.<br> - Simultaneity selector: threshold in milliseconds at which the app recognizes keys that should sound together, generating a single displacement in the score.<br><br> Enjoy DREAM IT and improve your musical expressiveness without worrying about reading notes! 😉";
           } else {
-              helpOverlay.innerHTML = "DREAM IT, es una app que permite tocar sin errores corrigiendo en tiempo real cualquier error, registrando tus aciertos y fallos y manteniendo tu dinámica original. Aquí tienes la funcionalidad de los botones principales:<br><br> - Elegir archivo: elige un archivo .musicxml, .mxl o .xml. <br> - Botones + y - de las manos: incrementa o disminuye el volumen de la mano seleccionada un 10%. <br> - Avanzar y retroceder: avanza o retrocede un espacio en la partitura. <br> - Midi Local Control: enciende o apaga el control local del piano. <br> - Botones de banderas: traduce los textos al idioma correspondiente.<br> - Selector de simultaneidad: umbral en milisegundos en el que la app reconoce teclas que deben sonar juntas, generando un solo desplazamiento en la partitura.<br><br>¡Disfruta de DREAM IT y mejora tu expresividad musical sin preocuparte de la lectura de notas! 😉";
+              helpOverlay.innerHTML = "DREAM IT, es una app que permite tocar sin errores corrigiendo en tiempo real cualquier error, registrando tus aciertos y fallos y manteniendo tu dinámica original. Aquí tienes la funcionalidad de los botones principales:<br><br> - Cargar archivo: elige un archivo .musicxml, .mxl o .xml. <br> - Botones + y - de las manos: incrementa o disminuye el volumen de la mano seleccionada un 10%. <br> - Avanzar y retroceder: avanza o retrocede un espacio en la partitura. <br> - Midi Local Control: enciende o apaga el control local del piano. <br> - Botones de banderas: traduce los textos al idioma correspondiente.<br> - Selector de simultaneidad: umbral en milisegundos en el que la app reconoce teclas que deben sonar juntas, generando un solo desplazamiento en la partitura.<br><br>¡Disfruta de DREAM IT y mejora tu expresividad musical sin preocuparte de la lectura de notas! 😉";
           }
           helpOverlay.style.display = "block";
           btnHelp.style.backgroundColor = "green";
@@ -931,25 +957,24 @@
     }
     
     function performScrollUpdate() {
-  let cursorEl = osmd.cursor.cursorElement || document.querySelector('.osmd-cursor');
-  if (cursorEl) {
-    let rect = cursorEl.getBoundingClientRect();
-    let cursorCenter = rect.top + rect.height / 2;
-    
-    // Detectar si es un móvil en orientación horizontal:
-    let isMobile = /Mobi/.test(navigator.userAgent);
-    let isHorizontal = window.innerWidth > window.innerHeight;
-    
-    // Usar un factor de posición diferente en móviles horizontales
-    let viewportTarget = isMobile && isHorizontal ? window.innerHeight * 0.75 : window.innerHeight * 0.5;
-    
-    let diff = cursorCenter - viewportTarget;
-    if (Math.abs(diff) > 20) {
-      window.scrollBy({ top: diff, behavior: 'smooth' });
+      let cursorEl = osmd.cursor.cursorElement || document.querySelector('.osmd-cursor');
+      if (cursorEl) {
+        let rect = cursorEl.getBoundingClientRect();
+        let cursorCenter = rect.top + rect.height / 2;
+        
+        // Detectar si es un móvil en orientación horizontal:
+        let isMobile = /Mobi/.test(navigator.userAgent);
+        let isHorizontal = window.innerWidth > window.innerHeight;
+        
+        // Usar un factor de posición diferente en móviles horizontales
+        let viewportTarget = isMobile && isHorizontal ? window.innerHeight * 0.75 : window.innerHeight * 0.5;
+        
+        let diff = cursorCenter - viewportTarget;
+        if (Math.abs(diff) > 20) {
+          window.scrollBy({ top: diff, behavior: 'smooth' });
+        }
+      }
     }
-  }
-}
-
     
     document.getElementById("btnAvanzar").addEventListener("click", () => {
       if (gameEnded) return;
@@ -1153,8 +1178,8 @@
       }
     }
     
-    
     document.addEventListener("DOMContentLoaded", () => {
+      // Partitura por defecto
       fetch("https://cdn.jsdelivr.net/gh/rafgim/NUEVO@main/2Prelude%20in%20C%20Major.musicxml")
         .then(response => response.text())
         .then(musicXML => {
@@ -1164,6 +1189,15 @@
         .catch(error => console.error("Error al cargar la partitura por defecto:", error));
     });
     
+    // NUEVO: Listener para el selector de partituras de muestra
+    document.getElementById("sampleScores").addEventListener("change", function(e) {
+      const selectedUrl = e.target.value;
+      if (selectedUrl) {
+        currentEventIndex = 0;
+        loadAndRender(selectedUrl);
+      }
+    });
+
     function resetState() {
       correctCount = 0;
       errorCount = 0;
