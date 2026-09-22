@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>6B · Puntos de Clase</title>
+<style>
+:root{--bg:#08111f;--panel:#111c31;--panel2:#16233d;--text:#f8fafc;--muted:#a8b3c7;--accent:#7c3aed;--good:#20d67b;--bad:#ff4d67;--gold:#ffd84d;--shadow:0 20px 55px rgba(0,0,0,.28)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,ui-rounded,"Arial Rounded MT Bold",system-ui,sans-serif;background:radial-gradient(circle at 10% 0%,#243b66 0,#0b1424 38%,#07101d 100%);color:var(--text)}
+button,input,textarea{font:inherit}.app{min-height:100svh;padding:18px;max-width:1500px;margin:auto}
+.top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,#8b5cf6,#22d3ee);font-size:32px;box-shadow:var(--shadow);transform:rotate(-3deg)}
+h1{font-size:clamp(24px,3vw,42px);margin:0;line-height:1}.sub{color:var(--muted);font-weight:800;margin-top:5px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.mini{border:0;background:#1d2a45;color:white;padding:10px 13px;border-radius:14px;font-weight:900;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.subjectBar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}.subject{border:0;border-radius:18px;padding:14px;color:#fff;font-weight:1000;font-size:clamp(14px,2vw,19px);transition:.2s;box-shadow:inset 0 0 0 2px transparent}.subject.active{transform:translateY(-3px) scale(1.015);box-shadow:0 14px 28px rgba(0,0,0,.22),inset 0 0 0 3px rgba(255,255,255,.8)}
+.math{background:linear-gradient(135deg,#5b21b6,#8b5cf6)}.cast{background:linear-gradient(135deg,#0f766e,#22c55e)}.val{background:linear-gradient(135deg,#0369a1,#38bdf8)}.cono{background:linear-gradient(135deg,#b45309,#f59e0b)}
+.status{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.07);backdrop-filter:blur(12px);margin-bottom:12px}
+.daynav{display:flex;align-items:center;gap:7px}.dateLabel{font-weight:1000;font-size:clamp(17px,2.3vw,25px)}.schoolBadge{font-weight:900;padding:8px 12px;border-radius:999px;background:#173b2f;color:#76f0b2}.schoolBadge.off{background:#432330;color:#ff9bac}
+.board{display:flex;flex-direction:column;gap:9px;position:relative}.student{position:relative;display:grid;grid-template-columns:64px minmax(160px,1fr) auto auto;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(28,42,70,.98),rgba(15,25,45,.98));border:1px solid rgba(255,255,255,.08);border-radius:21px;padding:10px 12px;box-shadow:0 10px 25px rgba(0,0,0,.16);transition:box-shadow .2s,background .2s;will-change:transform}
+.student:hover{box-shadow:0 16px 30px rgba(0,0,0,.24)}.rank{font-size:24px;font-weight:1000;text-align:center}.rank .medal{font-size:29px}
+.name{font-weight:1000;font-size:clamp(17px,2.2vw,25px)}.stats{display:flex;gap:8px;align-items:center;justify-content:flex-end}.pill{min-width:64px;text-align:center;padding:8px 11px;border-radius:14px;font-weight:1000}.pill.pos{background:rgba(32,214,123,.14);color:#6ef0ad}.pill.neg{background:rgba(255,77,103,.14);color:#ff91a4}.score{min-width:70px;font-size:26px;font-weight:1000;text-align:center}
+.vote{display:flex;gap:7px}.vote button{border:0;width:58px;height:52px;border-radius:16px;color:white;font-size:27px;font-weight:1000;box-shadow:0 8px 16px rgba(0,0,0,.18);transition:.09s}.vote button:active{transform:scale(.91)}.plus{background:linear-gradient(135deg,#16a34a,#22d67d)}.minus{background:linear-gradient(135deg,#dc2643,#ff5c72)}
+.student.flashGood{animation:goodFlash .62s ease}.student.flashBad{animation:badFlash .62s ease}.student.levelup:after{content:"⭐ SUBE ⭐";position:absolute;inset:0;border-radius:21px;display:grid;place-items:center;font-size:clamp(27px,4vw,52px);font-weight:1000;background:rgba(16,185,129,.88);animation:level 1s ease forwards;pointer-events:none}
+@keyframes goodFlash{0%,100%{background:linear-gradient(135deg,#1c2a46,#0f192d)}50%{background:linear-gradient(135deg,#12643f,#143b31);transform:scale(1.018)}}@keyframes badFlash{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}@keyframes level{0%{opacity:0;transform:scale(.6)}25%{opacity:1;transform:scale(1.05)}100%{opacity:0;transform:scale(1.2)}}
+.empty{padding:35px;text-align:center;color:var(--muted);font-size:20px}.footer{text-align:center;color:#8290a8;font-weight:800;padding:24px 10px 8px}
+.overlay{position:fixed;inset:0;background:rgba(3,8,19,.88);backdrop-filter:blur(14px);z-index:20;display:grid;place-items:center;padding:22px}.modal{width:min(900px,100%);background:linear-gradient(145deg,#17243e,#0f182a);border:1px solid rgba(255,255,255,.1);border-radius:30px;padding:24px;box-shadow:0 30px 90px rgba(0,0,0,.45)}.modal h2{font-size:clamp(28px,5vw,48px);margin:0 0 8px}.modal p{color:#b8c2d6;font-weight:700}.subjectPick{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}.pick{border:0;border-radius:22px;padding:26px 16px;color:white;font-size:clamp(20px,3vw,31px);font-weight:1000;box-shadow:0 15px 30px rgba(0,0,0,.2);transition:.15s}.pick:hover{transform:translateY(-4px) scale(1.015)}
+.settings{position:fixed;inset:0;background:rgba(3,8,19,.88);z-index:30;display:none;place-items:center;padding:20px}.settings.open{display:grid}.settings .modal{max-height:92svh;overflow:auto}.field{margin:14px 0}.field label{display:block;font-weight:1000;margin-bottom:7px}.field textarea,.field input{width:100%;background:#0b1424;color:white;border:1px solid #33425f;border-radius:14px;padding:12px}.row{display:flex;gap:8px;flex-wrap:wrap}.primary{border:0;border-radius:14px;background:#7c3aed;color:white;padding:11px 16px;font-weight:1000}.danger{border:0;border-radius:14px;background:#8b1e32;color:white;padding:11px 16px;font-weight:1000}.ghost{border:0;border-radius:14px;background:#263652;color:white;padding:11px 16px;font-weight:1000}
+.confetti{position:fixed;width:11px;height:16px;border-radius:3px;z-index:99;pointer-events:none;animation:fall 1.2s linear forwards}@keyframes fall{to{transform:translate(var(--dx),95vh) rotate(720deg);opacity:0}}
+@media(max-width:760px){.app{padding:10px}.student{grid-template-columns:46px 1fr auto;gap:7px}.stats{display:none}.vote{grid-column:2/4;justify-content:flex-end}.vote button{width:70px}.subjectBar{grid-template-columns:1fr 1fr}.logo{width:48px;height:48px}.subjectPick{grid-template-columns:1fr}.status{padding:10px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand"><div class="logo">🚀</div><div><h1>6B · Puntos de Clase</h1><div class="sub">CEIP Nuestra Señora del Carmen · Aldaia · Prof. Rafael Gimeno</div></div></div>
+    <div class="actions"><button class="mini" id="undoBtn">↶ Deshacer</button><button class="mini" id="todayBtn">📅 Hoy</button><button class="mini" id="settingsBtn">⚙️ Ajustes</button></div>
+  </div>
+
+  <div class="subjectBar" id="subjectBar"></div>
+
+  <div class="status">
+    <div class="daynav"><button class="mini" id="prevDay">‹</button><div class="dateLabel" id="dateLabel"></div><button class="mini" id="nextDay">›</button></div>
+    <div id="schoolBadge" class="schoolBadge"></div>
+  </div>
+
+  <main id="board" class="board"></main>
+  <div class="footer">Datos guardados solo en este dispositivo · curso 2026/27</div>
+</div>
+
+<div class="overlay" id="startOverlay">
+  <div class="modal">
+    <div style="font-size:54px">🏆✨</div>
+    <h2>¿Qué asignatura toca?</h2>
+    <p>Elige una materia. Cada positivo hace subir posiciones al instante; cada negativo hace bajar. Todo queda guardado día a día en este dispositivo.</p>
+    <div class="subjectPick" id="subjectPick"></div>
+  </div>
+</div>
+
+<div class="settings" id="settings">
+  <div class="modal">
+    <h2>⚙️ Ajustes</h2>
+    <p>Los nombres que escribas aquí se guardan únicamente en este navegador. La web pública no contiene apellidos completos de menores.</p>
+    <div class="field"><label>Alumnos (uno por línea)</label><textarea id="rosterInput" rows="18"></textarea></div>
+    <div class="field"><label>Días no lectivos locales de Aldaia / centro (AAAA-MM-DD, separados por comas)</label><input id="localDays" placeholder="2026-12-07, 2027-03-17"></div>
+    <div class="row"><button class="primary" id="saveSettings">Guardar</button><button class="ghost" id="closeSettings">Cerrar</button><button class="danger" id="resetDay">Borrar puntuaciones del día mostrado</button></div>
+  </div>
+</div>
+
+<script>
+const SUBJECTS={
+ math:{name:"Matemáticas",emoji:"🔢",cls:"math"},
+ cast:{name:"Castellano",emoji:"📚",cls:"cast"},
+ val:{name:"Valenciano",emoji:"💬",cls:"val"},
+ cono:{name:"Conocimiento del medio",emoji:"🌍",cls:"cono"}
+};
+const SAFE_ROSTER=["Miranda Á.","Ilyasse B.","Sami B.","Esther D.","Line L.","Isaac G.","Martina J.","Salma L.","Yerai R.","Andrés R.","Triana R.","Leo S.","Daniel S.","Álvaro S.","Alejandra S.","Leyre S.","Ainara S.","Vera A."];
+const LS_KEY="puntos6b_2627_v1";
+let data=loadData();
+let currentSubject=data.lastSubject||"math";
+let currentDate=todayISO();
+let lastAction=null;
+let lastEffect=null;
+
+function loadData(){
+  try{
+    const d=JSON.parse(localStorage.getItem(LS_KEY)||"{}");
+    return {scores:d.scores||{},roster:Array.isArray(d.roster)&&d.roster.length?d.roster:SAFE_ROSTER,localDays:d.localDays||[],lastSubject:d.lastSubject||"math"};
+  }catch(e){return {scores:{},roster:SAFE_ROSTER,localDays:[],lastSubject:"math"}}
+}
+function save(){localStorage.setItem(LS_KEY,JSON.stringify(data))}
+function todayISO(){const d=new Date(); return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
+function parseLocal(iso){const [y,m,d]=iso.split("-").map(Number);return new Date(y,m-1,d)}
+function iso(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
+function prettyDate(s){return parseLocal(s).toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
+function isBetween(s,a,b){return s>=a&&s<=b}
+function schoolInfo(s){
+  const d=parseLocal(s),day=d.getDay();
+  if(s<"2026-09-09"||s>"2027-06-18") return {ok:false,msg:"Fuera del curso 2026/27"};
+  if(day===0||day===6) return {ok:false,msg:"Fin de semana"};
+  if(isBetween(s,"2026-12-22","2027-01-06")) return {ok:false,msg:"Vacaciones de Navidad"};
+  if(isBetween(s,"2027-03-25","2027-04-05")) return {ok:false,msg:"Vacaciones de Pascua"};
+  const fixed={"2026-10-09":"9 d’Octubre","2026-10-12":"Fiesta Nacional","2026-12-08":"Inmaculada Concepción","2027-03-19":"San José"};
+  if(fixed[s]) return {ok:false,msg:fixed[s]};
+  if(data.localDays.includes(s)) return {ok:false,msg:"Día no lectivo local / centro"};
+  return {ok:true,msg:"Día lectivo"};
+}
+function dayBucket(){
+  data.scores[currentDate]??={};
+  data.scores[currentDate][currentSubject]??={};
+  return data.scores[currentDate][currentSubject];
+}
+function getStat(i){const b=dayBucket();return b[i]||{pos:0,neg:0}}
+function net(st){return (st.pos||0)-(st.neg||0)}
+function sortedStudents(){
+  return data.roster.map((name,i)=>({name,i,st:getStat(i)})).sort((a,b)=>net(b.st)-net(a.st)||(b.st.pos||0)-(a.st.pos||0)||(a.st.neg||0)-(b.st.neg||0)||a.i-b.i);
+}
+function renderSubjects(){
+  const bar=document.getElementById("subjectBar"),pick=document.getElementById("subjectPick");bar.innerHTML="";pick.innerHTML="";
+  Object.entries(SUBJECTS).forEach(([k,s])=>{
+    const b=document.createElement("button");b.className="subject "+s.cls+(k===currentSubject?" active":"");b.textContent=s.emoji+" "+s.name;b.onclick=()=>setSubject(k);bar.appendChild(b);
+    const p=document.createElement("button");p.className="pick "+s.cls;p.textContent=s.emoji+" "+s.name;p.onclick=()=>{setSubject(k);document.getElementById("startOverlay").style.display="none"};pick.appendChild(p);
+  });
+}
+function renderBoard(animate=true){
+  const board=document.getElementById("board");
+  const before={}; if(animate) [...board.children].forEach(el=>before[el.dataset.id]=el.getBoundingClientRect());
+  board.innerHTML="";
+  sortedStudents().forEach((x,rank)=>{
+    const s=x.st,score=net(s);
+    const el=document.createElement("section");el.className="student";el.dataset.id=x.i;
+    if(lastEffect&&lastEffect.id===x.i) el.classList.add(lastEffect.type==="pos"?"flashGood":"flashBad");
+    if(lastEffect&&lastEffect.id===x.i&&lastEffect.level) el.classList.add("levelup");
+    const medal=rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":"";
+    el.innerHTML=`<div class="rank">${medal?'<span class="medal">'+medal+'</span>':rank+1}</div>
+      <div class="name">${escapeHTML(x.name)}</div>
+      <div class="stats"><span class="pill pos">✅ ${s.pos||0}</span><span class="pill neg">❌ ${s.neg||0}</span><span class="score">${score>0?"+":""}${score}</span></div>
+      <div class="vote"><button class="plus" aria-label="positivo">＋</button><button class="minus" aria-label="negativo">−</button></div>`;
+    el.querySelector(".plus").onclick=()=>vote(x.i,1);el.querySelector(".minus").onclick=()=>vote(x.i,-1);board.appendChild(el);
+  });
+  if(animate&&Object.keys(before).length) requestAnimationFrame(()=>{
+    [...board.children].forEach(el=>{const a=before[el.dataset.id],b=el.getBoundingClientRect();if(!a)return;const dy=a.top-b.top;if(Math.abs(dy)>1){el.animate([{transform:`translateY(${dy}px)`},{transform:"translateY(0)"}],{duration:650,easing:"cubic-bezier(.2,.8,.2,1)"})}});
+  });
+  lastEffect=null;
+}
+function vote(id,delta){
+  const b=dayBucket(),old={...(b[id]||{pos:0,neg:0})};b[id]={...old};
+  if(delta>0)b[id].pos=(b[id].pos||0)+1;else b[id].neg=(b[id].neg||0)+1;
+  lastAction={date:currentDate,subject:currentSubject,id,old};
+  const newScore=net(b[id]);lastEffect={id,type:delta>0?"pos":"neg",level:delta>0&&newScore>0&&newScore%3===0};
+  save();playSound(delta);if(delta>0)confetti();renderBoard(true);
+}
+function undo(){
+  if(!lastAction)return;
+  const {date,subject,id,old}=lastAction;data.scores[date]??={};data.scores[date][subject]??={};data.scores[date][subject][id]=old;save();lastAction=null;renderBoard(true);softTone();
+}
+function setSubject(k){currentSubject=k;data.lastSubject=k;save();renderSubjects();renderBoard(false)}
+function shiftSchoolDay(dir){
+  let d=parseLocal(currentDate),guard=0;do{d.setDate(d.getDate()+dir);guard++}while(!schoolInfo(iso(d)).ok&&guard<40);currentDate=iso(d);updateDate();renderBoard(false);
+}
+function updateDate(){document.getElementById("dateLabel").textContent=prettyDate(currentDate);const inf=schoolInfo(currentDate),b=document.getElementById("schoolBadge");b.textContent=inf.ok?"✅ "+inf.msg:"🌙 "+inf.msg;b.classList.toggle("off",!inf.ok)}
+function escapeHTML(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function confetti(){
+  const chars=["#22d3ee","#f59e0b","#ec4899","#22c55e","#8b5cf6","#fde047"];
+  for(let i=0;i<22;i++){const c=document.createElement("i");c.className="confetti";c.style.left=(45+Math.random()*30)+"vw";c.style.top="8vh";c.style.background=chars[i%chars.length];c.style.setProperty("--dx",(-160+Math.random()*320)+"px");c.style.animationDelay=(Math.random()*.15)+"s";document.body.appendChild(c);setTimeout(()=>c.remove(),1400)}
+}
+let audioCtx;
+function ctx(){return audioCtx||(audioCtx=new (window.AudioContext||window.webkitAudioContext)())}
+function tone(freq,start,dur,type="sine",gain=.08){const c=ctx(),o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.0001,c.currentTime+start);g.gain.exponentialRampToValueAtTime(gain,c.currentTime+start+.015);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+start+dur);o.connect(g).connect(c.destination);o.start(c.currentTime+start);o.stop(c.currentTime+start+dur+.03)}
+function playSound(delta){if(delta>0){tone(523,0,.16,"triangle",.11);tone(659,.08,.17,"triangle",.11);tone(784,.16,.22,"triangle",.12);tone(1046,.28,.35,"sine",.09)}else{tone(220,0,.18,"sawtooth",.06);tone(165,.12,.22,"sawtooth",.06);tone(110,.25,.32,"square",.04)}}
+function softTone(){tone(440,0,.12,"sine",.05)}
+function openSettings(){document.getElementById("rosterInput").value=data.roster.join("\n");document.getElementById("localDays").value=data.localDays.join(", ");document.getElementById("settings").classList.add("open")}
+document.getElementById("saveSettings").onclick=()=>{const r=document.getElementById("rosterInput").value.split(/\n/).map(x=>x.trim()).filter(Boolean);if(r.length)data.roster=r;data.localDays=document.getElementById("localDays").value.split(",").map(x=>x.trim()).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x));save();document.getElementById("settings").classList.remove("open");updateDate();renderBoard(false)};
+document.getElementById("closeSettings").onclick=()=>document.getElementById("settings").classList.remove("open");
+document.getElementById("settingsBtn").onclick=openSettings;document.getElementById("undoBtn").onclick=undo;
+document.getElementById("todayBtn").onclick=()=>{currentDate=todayISO();updateDate();renderBoard(false)};
+document.getElementById("prevDay").onclick=()=>shiftSchoolDay(-1);document.getElementById("nextDay").onclick=()=>shiftSchoolDay(1);
+document.getElementById("resetDay").onclick=()=>{if(confirm("¿Borrar todos los puntos de "+prettyDate(currentDate)+" en "+SUBJECTS[currentSubject].name+"?")){if(data.scores[currentDate])data.scores[currentDate][currentSubject]={};save();lastAction=null;renderBoard(false)}};
+renderSubjects();updateDate();renderBoard(false);
+</script>
+</body>
+</html>
