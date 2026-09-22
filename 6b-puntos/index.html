@@ -128,7 +128,7 @@ function renderBoard(animate=true){
   board.innerHTML="";
   sortedStudents().forEach((x,rank)=>{
     const s=x.st,score=net(s);
-    const el=document.createElement("section");el.className="student";el.dataset.id=x.i;
+    const el=document.createElement("section");el.className="student";el.dataset.id=x.i; const pos=rank+1; if(window.matchMedia("(min-width:761px)").matches){el.style.gridColumn=pos<=9?"1":"2";el.style.gridRow=String(pos<=9?pos:pos-9);}
     if(lastEffect&&lastEffect.id===x.i) el.classList.add(lastEffect.type==="pos"?"flashGood":"flashBad");
     if(lastEffect&&lastEffect.id===x.i&&lastEffect.level) el.classList.add("levelup");
     const medal=rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":"";
