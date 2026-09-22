@@ -45,7 +45,7 @@ h1{font-size:clamp(24px,3vw,42px);margin:0;line-height:1}.sub{color:var(--muted)
   </div>
 
   <main id="board" class="board"></main>
-  <div class="footer">Datos guardados solo en este dispositivo · curso 2026/27</div>
+  <div class="footer">Datos sincronizados en Firebase · curso 2026/27</div>
 </div>
 
 <div class="overlay" id="startOverlay">
@@ -60,14 +60,30 @@ h1{font-size:clamp(24px,3vw,42px);margin:0;line-height:1}.sub{color:var(--muted)
 <div class="settings" id="settings">
   <div class="modal">
     <h2>⚙️ Ajustes</h2>
-    <p>Los nombres que escribas aquí se guardan únicamente en este navegador. La web pública no contiene apellidos completos de menores.</p>
+    <p>Los nombres y puntuaciones se sincronizan en Firebase para poder usar la app desde distintos dispositivos.</p>
     <div class="field"><label>Alumnos (uno por línea)</label><textarea id="rosterInput" rows="18"></textarea></div>
     <div class="field"><label>Días no lectivos locales de Aldaia / centro (AAAA-MM-DD, separados por comas)</label><input id="localDays" placeholder="2026-12-07, 2027-03-17"></div>
     <div class="row"><button class="primary" id="saveSettings">Guardar</button><button class="ghost" id="closeSettings">Cerrar</button><button class="danger" id="resetDay">Borrar puntuaciones del día mostrado</button></div>
   </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyD5EAMg-0p54f8bPq8SVdZ_ePg5Xso3cmg",
+  authDomain:"arm1-acbba.firebaseapp.com",
+  projectId:"arm1-acbba",
+  storageBucket:"arm1-acbba.firebasestorage.app",
+  messagingSenderId:"408825932019",
+  appId:"1:408825932019:web:10f2079b590b4c9ca3af86",
+  measurementId:"G-S78TM6PVRL"
+};
+const firebaseApp=initializeApp(firebaseConfig);
+const db=getFirestore(firebaseApp);
+const stateRef=doc(db,"puntos6b_2627","state");
+
 const SUBJECTS={
  math:{name:"Matemáticas",emoji:"🔢",cls:"math"},
  cast:{name:"Castellano",emoji:"📚",cls:"cast"},
@@ -75,21 +91,80 @@ const SUBJECTS={
  cono:{name:"Conocimiento del medio",emoji:"🌍",cls:"cono"}
 };
 const SAFE_ROSTER=["Miranda Á.","Ilyasse B.","Sami B.","Esther D.","Line L.","Isaac G.","Martina J.","Salma L.","Yerai R.","Andrés R.","Triana R.","Leo S.","Daniel S.","Álvaro S.","Alejandra S.","Leyre S.","Ainara S.","Vera A."];
-const LS_KEY="puntos6b_2627_v1";
-let data=loadData();
-let currentSubject=data.lastSubject||"math";
+const LEGACY_LS_KEY="puntos6b_2627_v1";
+let data={scores:{},roster:SAFE_ROSTER,localDays:[],lastSubject:"math"};
+let currentSubject="math";
 let currentDate=todayISO();
 let totalMode=false;
 let lastAction=null;
 let lastEffect=null;
+let firebaseReady=false;
+let applyingRemote=false;
+let saveTimer=null;
 
-function loadData(){
-  try{
-    const d=JSON.parse(localStorage.getItem(LS_KEY)||"{}");
-    return {scores:d.scores||{},roster:Array.isArray(d.roster)&&d.roster.length?d.roster:SAFE_ROSTER,localDays:d.localDays||[],lastSubject:d.lastSubject||"math"};
-  }catch(e){return {scores:{},roster:SAFE_ROSTER,localDays:[],lastSubject:"math"}}
+function normalizeData(d={}){
+  return {
+    scores:d.scores||{},
+    roster:Array.isArray(d.roster)&&d.roster.length?d.roster:SAFE_ROSTER,
+    localDays:Array.isArray(d.localDays)?d.localDays:[],
+    lastSubject:d.lastSubject||"math"
+  };
 }
-function save(){localStorage.setItem(LS_KEY,JSON.stringify(data))}
+async function initFirebaseData(){
+  try{
+    const snap=await getDoc(stateRef);
+    if(snap.exists()){
+      data=normalizeData(snap.data());
+    }else{
+      let legacy=null;
+      try{legacy=JSON.parse(localStorage.getItem(LEGACY_LS_KEY)||"null")}catch(e){}
+      data=normalizeData(legacy||data);
+      await setDoc(stateRef,{...data,updatedAt:new Date().toISOString()});
+    }
+    currentSubject=data.lastSubject||"math";
+    firebaseReady=true;
+    try{localStorage.removeItem(LEGACY_LS_KEY)}catch(e){}
+    applyTheme();renderSubjects();updateDate();renderBoard(false);
+    onSnapshot(stateRef,(snap)=>{
+      if(!snap.exists()||applyingRemote)return;
+      const remote=normalizeData(snap.data());
+      data=remote;
+      if(!totalMode) currentSubject=data.lastSubject||currentSubject;
+      applyTheme();renderSubjects();updateDate();renderBoard(true);
+    },err=>showSyncStatus(false,err));
+    showSyncStatus(true);
+  }catch(err){
+    console.error(err);
+    showSyncStatus(false,err);
+    alert("No se ha podido conectar con Firebase. Revisa las reglas de Firestore del proyecto arm1-acbba.");
+  }
+}
+function save(){
+  if(!firebaseReady)return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    try{
+      applyingRemote=true;
+      await setDoc(stateRef,{...data,updatedAt:new Date().toISOString()});
+      showSyncStatus(true);
+    }catch(err){
+      console.error(err);showSyncStatus(false,err);
+    }finally{
+      setTimeout(()=>applyingRemote=false,120);
+    }
+  },80);
+}
+function showSyncStatus(ok){
+  let el=document.getElementById("syncStatus");
+  if(!el){
+    el=document.createElement("span");
+    el.id="syncStatus";
+    el.className="mini";
+    document.querySelector(".actions").prepend(el);
+  }
+  el.textContent=ok?"☁️ Firebase":"⚠️ Sin conexión";
+  el.style.background=ok?"#14532d":"#7f1d1d";
+}
 function todayISO(){const d=new Date(); return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
 function parseLocal(iso){const [y,m,d]=iso.split("-").map(Number);return new Date(y,m-1,d)}
 function iso(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
@@ -228,7 +303,7 @@ document.getElementById("settingsBtn").onclick=openSettings;document.getElementB
 document.getElementById("todayBtn").onclick=()=>{totalMode=false;currentDate=todayISO();renderSubjects();updateDate();renderBoard(false)};
 document.getElementById("prevDay").onclick=()=>shiftSchoolDay(-1);document.getElementById("nextDay").onclick=()=>shiftSchoolDay(1);
 document.getElementById("resetDay").onclick=()=>{if(confirm("¿Borrar todos los puntos de "+prettyDate(currentDate)+" en "+SUBJECTS[currentSubject].name+"?")){if(data.scores[currentDate])data.scores[currentDate][currentSubject]={};save();lastAction=null;renderBoard(false)}};
-applyTheme();renderSubjects();updateDate();renderBoard(false);
+initFirebaseData();
 </script>
 </body>
 </html>
