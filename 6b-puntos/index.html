@@ -13,14 +13,14 @@ button,input,textarea{font:inherit}.app{min-height:100svh;padding:18px;max-width
 .brand{display:flex;align-items:center;gap:12px}.logo{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:32px;box-shadow:var(--shadow);transform:rotate(-3deg)}
 h1{font-size:clamp(24px,3vw,42px);margin:0;line-height:1}.sub{color:var(--muted);font-weight:800;margin-top:5px}
 .actions{display:flex;gap:8px;flex-wrap:wrap}.mini{border:0;background:#1d2a45;color:white;padding:10px 13px;border-radius:14px;font-weight:900;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
-.subjectBar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}.subject{border:0;border-radius:18px;padding:14px;color:#fff;font-weight:1000;font-size:clamp(14px,2vw,19px);transition:.2s;box-shadow:inset 0 0 0 2px transparent}.subject.active{transform:translateY(-3px) scale(1.015);box-shadow:0 14px 28px rgba(0,0,0,.22),inset 0 0 0 3px rgba(255,255,255,.8)}
+.subjectBar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}.subjectCell{display:grid;grid-template-columns:1fr;gap:6px}.subject{border:0;border-radius:18px;padding:14px;color:#fff;font-weight:1000;font-size:clamp(14px,2vw,19px);transition:.2s;box-shadow:inset 0 0 0 2px transparent}.subject.active{transform:translateY(-3px) scale(1.015);box-shadow:0 14px 28px rgba(0,0,0,.22),inset 0 0 0 3px rgba(255,255,255,.8)}.totalBtn{border:0;border-radius:13px;padding:7px 9px;background:#18243b;color:#e9eef8;font-weight:1000;font-size:13px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.09);transition:.15s}.totalBtn:hover{transform:translateY(-1px);background:#223452}.totalBtn.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 8px 18px rgba(0,0,0,.25)}
 .math{background:linear-gradient(135deg,#5b21b6,#8b5cf6)}.cast{background:linear-gradient(135deg,#0f766e,#22c55e)}.val{background:linear-gradient(135deg,#0369a1,#38bdf8)}.cono{background:linear-gradient(135deg,#b45309,#f59e0b)}
 .status{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 26%,transparent),rgba(255,255,255,.06));backdrop-filter:blur(12px);margin-bottom:12px}
 .daynav{display:flex;align-items:center;gap:7px}.dateLabel{font-weight:1000;font-size:clamp(17px,2.3vw,25px)}.schoolBadge{font-weight:900;padding:8px 12px;border-radius:999px;background:#173b2f;color:#76f0b2}.schoolBadge.off{background:#432330;color:#ff9bac}
 .board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 12px;position:relative}.student{position:relative;display:grid;grid-template-columns:76px minmax(120px,1fr) auto auto;align-items:center;gap:8px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 18%,#1c2a46),color-mix(in srgb,var(--accent2) 10%,#0f192d));border:1px solid rgba(255,255,255,.08);border-radius:21px;padding:10px 12px;box-shadow:0 10px 25px rgba(0,0,0,.16);transition:box-shadow .2s,background .2s;will-change:transform}
 .student:hover{box-shadow:0 16px 30px rgba(0,0,0,.24)}.rank{font-size:clamp(38px,4.2vw,58px);line-height:.95;font-weight:1000;text-align:center;color:#fff;text-shadow:0 4px 14px rgba(0,0,0,.35)}.rank .medal{font-size:clamp(36px,4vw,54px)}
 .name{font-weight:1000;font-size:clamp(15px,1.65vw,22px);line-height:1.05}.stats{display:flex;align-items:center;justify-content:flex-end}.stats .pill{display:none}.stats .score{display:inline-grid;place-items:center;min-width:58px;height:44px;padding:0 10px;border-radius:14px;background:rgba(255,255,255,.09);font-size:clamp(22px,2.2vw,30px);font-weight:1000;text-align:center}.pill{min-width:64px;text-align:center;padding:8px 11px;border-radius:14px;font-weight:1000}.pill.pos{background:rgba(32,214,123,.14);color:#6ef0ad}.pill.neg{background:rgba(255,77,103,.14);color:#ff91a4}.score{min-width:70px;font-size:26px;font-weight:1000;text-align:center}
-.vote{display:flex;gap:7px;justify-content:flex-end}.vote button{border:0;width:52px;height:48px;border-radius:16px;color:white;font-size:27px;font-weight:1000;box-shadow:0 8px 16px rgba(0,0,0,.18);transition:.09s}.vote button:active{transform:scale(.91)}.plus{background:linear-gradient(135deg,#16a34a,#22d67d)}.minus{background:linear-gradient(135deg,#dc2643,#ff5c72)}
+.vote{display:flex;gap:7px;justify-content:flex-end}.totalTag{min-width:74px;text-align:center;padding:10px 12px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));font-weight:1000;font-size:13px;letter-spacing:.5px}.vote button{border:0;width:52px;height:48px;border-radius:16px;color:white;font-size:27px;font-weight:1000;box-shadow:0 8px 16px rgba(0,0,0,.18);transition:.09s}.vote button:active{transform:scale(.91)}.plus{background:linear-gradient(135deg,#16a34a,#22d67d)}.minus{background:linear-gradient(135deg,#dc2643,#ff5c72)}
 .student.flashGood{animation:goodFlash .62s ease}.student.flashBad{animation:badFlash .62s ease}.student.levelup:after{content:"⭐ SUBE ⭐";position:absolute;inset:0;border-radius:21px;display:grid;place-items:center;font-size:clamp(27px,4vw,52px);font-weight:1000;background:rgba(16,185,129,.88);animation:level 1s ease forwards;pointer-events:none}
 @keyframes goodFlash{0%,100%{background:linear-gradient(135deg,#1c2a46,#0f192d)}50%{background:linear-gradient(135deg,#12643f,#143b31);transform:scale(1.018)}}@keyframes badFlash{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}@keyframes level{0%{opacity:0;transform:scale(.6)}25%{opacity:1;transform:scale(1.05)}100%{opacity:0;transform:scale(1.2)}}
 .empty{padding:35px;text-align:center;color:var(--muted);font-size:20px}.footer{text-align:center;color:#8290a8;font-weight:800;padding:24px 10px 8px}
@@ -79,6 +79,7 @@ const LS_KEY="puntos6b_2627_v1";
 let data=loadData();
 let currentSubject=data.lastSubject||"math";
 let currentDate=todayISO();
+let totalMode=false;
 let lastAction=null;
 let lastEffect=null;
 
@@ -110,7 +111,17 @@ function dayBucket(){
   data.scores[currentDate][currentSubject]??={};
   return data.scores[currentDate][currentSubject];
 }
-function getStat(i){const b=dayBucket();return b[i]||{pos:0,neg:0}}
+function getDailyStat(i){const b=dayBucket();return b[i]||{pos:0,neg:0}}
+function getTotalStat(i){
+  let pos=0,neg=0;
+  Object.values(data.scores||{}).forEach(day=>{
+    const subject=day&&day[currentSubject];
+    const st=subject&&subject[i];
+    if(st){pos+=st.pos||0;neg+=st.neg||0}
+  });
+  return {pos,neg};
+}
+function getStat(i){return totalMode?getTotalStat(i):getDailyStat(i)}
 function net(st){return (st.pos||0)-(st.neg||0)}
 function sortedStudents(){
   return data.roster.map((name,i)=>({name,i,st:getStat(i)})).sort((a,b)=>net(b.st)-net(a.st)||(b.st.pos||0)-(a.st.pos||0)||(a.st.neg||0)-(b.st.neg||0)||a.i-b.i);
@@ -118,8 +129,11 @@ function sortedStudents(){
 function renderSubjects(){
   const bar=document.getElementById("subjectBar"),pick=document.getElementById("subjectPick");bar.innerHTML="";pick.innerHTML="";
   Object.entries(SUBJECTS).forEach(([k,s])=>{
-    const b=document.createElement("button");b.className="subject "+s.cls+(k===currentSubject?" active":"");b.textContent=s.emoji+" "+s.name;b.onclick=()=>setSubject(k);bar.appendChild(b);
-    const p=document.createElement("button");p.className="pick "+s.cls;p.textContent=s.emoji+" "+s.name;p.onclick=()=>{setSubject(k);document.getElementById("startOverlay").style.display="none"};pick.appendChild(p);
+    const cell=document.createElement("div");cell.className="subjectCell";
+    const b=document.createElement("button");b.className="subject "+s.cls+(k===currentSubject&&!totalMode?" active":"");b.textContent=s.emoji+" "+s.name;b.onclick=()=>setSubject(k,false);cell.appendChild(b);
+    const t=document.createElement("button");t.className="totalBtn"+(k===currentSubject&&totalMode?" active":"");t.textContent="🏆 TOTAL DEL CURSO";t.onclick=()=>setSubject(k,true);cell.appendChild(t);
+    bar.appendChild(cell);
+    const p=document.createElement("button");p.className="pick "+s.cls;p.textContent=s.emoji+" "+s.name;p.onclick=()=>{setSubject(k,false);document.getElementById("startOverlay").style.display="none"};pick.appendChild(p);
   });
 }
 function renderBoard(animate=true){
@@ -135,8 +149,8 @@ function renderBoard(animate=true){
     el.innerHTML=`<div class="rank">${medal?'<span class="medal">'+medal+'</span>':rank+1}</div>
       <div class="name">${escapeHTML(x.name)}</div>
       <div class="stats"><span class="pill pos">✅ ${s.pos||0}</span><span class="pill neg">❌ ${s.neg||0}</span><span class="score">${score>0?"+":""}${score}</span></div>
-      <div class="vote"><button class="plus" aria-label="positivo">＋</button><button class="minus" aria-label="negativo">−</button></div>`;
-    el.querySelector(".plus").onclick=()=>vote(x.i,1);el.querySelector(".minus").onclick=()=>vote(x.i,-1);board.appendChild(el);
+      <div class="vote">${totalMode?'<div class="totalTag">🏆 TOTAL</div>':'<button class="plus" aria-label="positivo">＋</button><button class="minus" aria-label="negativo">−</button>'}</div>`;
+    if(!totalMode){el.querySelector(".plus").onclick=()=>vote(x.i,1);el.querySelector(".minus").onclick=()=>vote(x.i,-1)}board.appendChild(el);
   });
   if(animate&&Object.keys(before).length) requestAnimationFrame(()=>{
     [...board.children].forEach(el=>{const a=before[el.dataset.id],b=el.getBoundingClientRect();if(!a)return;const dx=a.left-b.left,dy=a.top-b.top;if(Math.abs(dx)>1||Math.abs(dy)>1){el.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:"translate(0,0)"}],{duration:700,easing:"cubic-bezier(.2,.8,.2,1)"})}});
@@ -144,6 +158,7 @@ function renderBoard(animate=true){
   lastEffect=null;
 }
 function vote(id,delta){
+  if(totalMode)return;
   const b=dayBucket(),old={...(b[id]||{pos:0,neg:0})};b[id]={...old};
   if(delta>0)b[id].pos=(b[id].pos||0)+1;else b[id].neg=(b[id].neg||0)+1;
   lastAction={date:currentDate,subject:currentSubject,id,old};
@@ -154,11 +169,27 @@ function undo(){
   if(!lastAction)return;
   const {date,subject,id,old}=lastAction;data.scores[date]??={};data.scores[date][subject]??={};data.scores[date][subject][id]=old;save();lastAction=null;renderBoard(true);softTone();
 }
-function setSubject(k){currentSubject=k;data.lastSubject=k;save();applyTheme();renderSubjects();renderBoard(false)}
+function setSubject(k,total=false){currentSubject=k;totalMode=total;data.lastSubject=k;save();applyTheme();renderSubjects();updateDate();renderBoard(true)}
 function shiftSchoolDay(dir){
+  totalMode=false;renderSubjects();
   let d=parseLocal(currentDate),guard=0;do{d.setDate(d.getDate()+dir);guard++}while(!schoolInfo(iso(d)).ok&&guard<40);currentDate=iso(d);updateDate();renderBoard(false);
 }
-function updateDate(){document.getElementById("dateLabel").textContent=prettyDate(currentDate);const inf=schoolInfo(currentDate),b=document.getElementById("schoolBadge");b.textContent=inf.ok?"✅ "+inf.msg:"🌙 "+inf.msg;b.classList.toggle("off",!inf.ok);applyTheme()}
+function updateDate(){
+  const label=document.getElementById("dateLabel"),badge=document.getElementById("schoolBadge");
+  document.getElementById("prevDay").style.visibility=totalMode?"hidden":"visible";
+  document.getElementById("nextDay").style.visibility=totalMode?"hidden":"visible";
+  if(totalMode){
+    label.textContent="🏆 Clasificación total · "+SUBJECTS[currentSubject].name;
+    badge.textContent="📊 Suma de todos los días";
+    badge.classList.remove("off");
+  }else{
+    label.textContent=prettyDate(currentDate);
+    const inf=schoolInfo(currentDate);
+    badge.textContent=inf.ok?"✅ "+inf.msg:"🌙 "+inf.msg;
+    badge.classList.toggle("off",!inf.ok);
+  }
+  applyTheme()
+}
 function applyTheme(){
   const subjectThemes={
     math:["#6d28d9","#a78bfa","#8b5cf6","#4c1d95","#7c3aed"],
@@ -194,7 +225,7 @@ function openSettings(){document.getElementById("rosterInput").value=data.roster
 document.getElementById("saveSettings").onclick=()=>{const r=document.getElementById("rosterInput").value.split(/\n/).map(x=>x.trim()).filter(Boolean);if(r.length)data.roster=r;data.localDays=document.getElementById("localDays").value.split(",").map(x=>x.trim()).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x));save();document.getElementById("settings").classList.remove("open");updateDate();renderBoard(false)};
 document.getElementById("closeSettings").onclick=()=>document.getElementById("settings").classList.remove("open");
 document.getElementById("settingsBtn").onclick=openSettings;document.getElementById("undoBtn").onclick=undo;
-document.getElementById("todayBtn").onclick=()=>{currentDate=todayISO();updateDate();renderBoard(false)};
+document.getElementById("todayBtn").onclick=()=>{totalMode=false;currentDate=todayISO();renderSubjects();updateDate();renderBoard(false)};
 document.getElementById("prevDay").onclick=()=>shiftSchoolDay(-1);document.getElementById("nextDay").onclick=()=>shiftSchoolDay(1);
 document.getElementById("resetDay").onclick=()=>{if(confirm("¿Borrar todos los puntos de "+prettyDate(currentDate)+" en "+SUBJECTS[currentSubject].name+"?")){if(data.scores[currentDate])data.scores[currentDate][currentSubject]={};save();lastAction=null;renderBoard(false)}};
 applyTheme();renderSubjects();updateDate();renderBoard(false);
