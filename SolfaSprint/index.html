@@ -234,7 +234,7 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
   <div class="setting-title">Nombres de los jugadores</div>
   <div class="name-fields" id="nameFields"></div>
   <div class="setting-title">Duración de la partida</div>
-  <div class="choices" id="speedChoices"><button class="choice selected" type="button" data-cards="12">Normal · 12 cartas</button><button class="choice" type="button" data-cards="6">Rápida · 6 cartas</button></div>
+  <div class="choices" id="speedChoices"><button class="choice selected" type="button" data-cards="6">Rápida · 6 cartas</button><button class="choice" type="button" data-cards="12">Normal · 12 cartas</button></div>
   <div class="setting-title">Nivel musical</div>
    <div class="choices mode-choices" id="modeChoices">
     <button class="choice selected" type="button" data-mode="easy">Sencillo · DO a SOL</button>
@@ -336,7 +336,7 @@ const COLORS=[
 const RACE_MS=7000, RESULT_MS=1100, NON_MATCH_MS=1750, DEAL_MS=690;
 const $=id=>document.getElementById(id);
 const board=$('board'),zones=$('playerZones'),picture=$('pictureCard');
-const state={count:4,cards:12,players:[],pile:[],turn:0,wordIndex:0,phase:'setup',currentCard:null,currentWord:'',dealer:0,
+const state={count:4,cards:6,players:[],pile:[],turn:0,wordIndex:0,phase:'setup',currentCard:null,currentWord:'',dealer:0,
  responses:new Map(),roundStart:0,roundTimeout:0,raf:0,resultTimer:0,waitInterval:0,extraTimers:[],mode:'easy',lang:'es',notation:'latin',showCardName:true,selectedNotes:EASY_IDS.slice(),notePool:[],special:false,voice:false,sound:false,music:false,animationId:0,penaltyId:-1,fastestId:-1,penaltyCards:0,winnerId:-1};
 let audioCtx=null,toastTimer=0;
 const tx=(es,zh)=>state.lang==='zh'?zh:es;
