@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#101b3a">
+<title>SolfaSprint — El reto de las notas musicales</title>
+<meta name="description" content="SolfaSprint: juego educativo de oído musical y cartas para 2 a 8 jugadores, con pentagrama, notación latina o americana y dos niveles." />
+<style>
+:root{--ink:#27314b;--yellow:#ffce4b;--cream:#fff7df;--paper:#fffdf7}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{font-family:ui-rounded,"Trebuchet MS",system-ui,-apple-system,"Segoe UI",sans-serif;background:#fff3ca;color:var(--ink);user-select:none;-webkit-user-select:none;overflow:hidden;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit}button{touch-action:manipulation;cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #1569db;outline-offset:3px}
+.app{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:radial-gradient(circle at 50% 49%,#fffdf7,#ffedba 115%)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;min-height:61px;padding:6px clamp(8px,2vw,24px);background:rgba(255,255,255,.86);border-bottom:2px solid #eadfbf;z-index:20}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}.logo{display:grid;place-items:center;border-radius:13px;background:#ffcf4a;box-shadow:0 4px #ecac37;width:44px;height:44px;font-size:26px;flex:none;transform:rotate(-5deg)}
+.brand h1{margin:0;font-size:clamp(13px,1.7vw,24px);line-height:1.12;letter-spacing:.015em;font-weight:1000}.brand small{display:block;font-size:clamp(9px,.87vw,12px);font-weight:750;color:#77747b;line-height:1.2;margin-top:3px}
+.actions{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}.mini{color:#34405a;border:2px solid #e9e0d5;background:#fff;border-radius:11px;min-height:39px;padding:7px 10px;font-size:clamp(11px,.9vw,13px);font-weight:1000;white-space:nowrap}.mini.on{background:#e9fbef;border-color:#9fd6b0}.mini:active{transform:scale(.97)}
+.board{position:relative;isolation:isolate;min-height:0;flex:1;overflow:hidden}.board::before{content:"";position:absolute;inset:7% 27%;border:3px dashed #ecdcae;border-radius:48px;pointer-events:none;opacity:.65}
+#playerZones{position:absolute;inset:0;pointer-events:none;z-index:5}
+.player-zone{--accent:#f36e81;--light:#ffedf1;position:absolute;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(2px,.6vh,7px);left:1%;width:clamp(140px,24vw,315px);height:25%;max-height:270px;padding:6px 9px;border:3px solid var(--accent);border-radius:22px;background:var(--light);box-shadow:0 5px 0 color-mix(in srgb,var(--accent) 34%,transparent),0 10px 15px #32385512;transform:translateY(-50%);transition:filter .15s,border-color .15s,background .15s;touch-action:none;overflow:hidden;outline-offset:2px}
+.player-zone[data-side="right"]{left:auto;right:1%}.player-zone:active{filter:brightness(.97);transform:translateY(-50%) scale(.97)}
+.player-zone .seat-num{position:absolute;left:10px;top:7px;text-transform:uppercase;font-size:clamp(9px,.8vw,12px);font-weight:1000;color:var(--accent);letter-spacing:.07em}
+.player-name{font-weight:1000;font-size:clamp(15px,1.8vw,25px);line-height:1.08;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:95%;margin-top:6px}
+.player-count{font-size:clamp(11px,1.15vw,17px);font-weight:900;background:#fff;border-radius:99px;padding:3px 12px;border:2px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+.player-symbol{font-size:clamp(20px,3.5vh,42px);line-height:1.05;filter:drop-shadow(0 2px #fff)}
+.player-cue{font-size:clamp(11px,1.1vw,17px);font-weight:1000;color:var(--accent);line-height:1.12;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.board.awaiting-draw .player-zone:not(.is-turn){filter:saturate(.48) brightness(.95);opacity:.67}
+.player-zone.is-turn{border:5px solid var(--accent);box-shadow:0 0 0 5px white,0 0 0 13px var(--accent),0 0 34px 12px color-mix(in srgb,var(--accent) 54%,transparent);z-index:9;background:color-mix(in srgb,var(--light) 48%,#fff);animation:turn-beacon 1.15s ease-in-out infinite alternate;filter:saturate(1.25)}
+.player-zone.is-turn::after{content:'👆 ¡TOCA AQUÍ!';position:absolute;top:4px;right:5px;border-radius:99px;background:var(--accent);color:#151b29;padding:3px 9px;font-weight:1000;font-size:clamp(10px,1.1vw,15px);box-shadow:0 3px 0 #2222;animation:tap-bounce .7s ease-in-out infinite alternate}
+.player-zone.is-turn .player-name{font-size:clamp(18px,2.15vw,29px);color:#1b2740;text-decoration:underline;text-decoration-thickness:3px;text-decoration-color:var(--accent);text-underline-offset:4px}
+.player-zone.is-turn .player-symbol{animation:tap-bounce .6s ease-in-out infinite alternate;filter:drop-shadow(0 3px 3px #fff)}
+.player-zone.is-turn .player-cue{color:#27314b;font-size:clamp(12px,1.25vw,18px)}
+.player-zone.can-react{animation:pulse .7s ease-in-out infinite alternate;background:color-mix(in srgb,var(--light) 82%,#fff)}
+.player-zone.has-reacted{background:#e1f5e5;border-color:#59b978;filter:saturate(.74)}
+.player-zone.has-reacted .player-cue{color:#2b8857}
+.player-zone.penalty{animation:penalty .55s ease-in-out 2;z-index:10;border:5px solid #e54f67;background:#ffecf0;box-shadow:0 0 0 4px #fff,0 0 0 11px #ed6077,0 10px 30px #dd3f6355}
+.player-zone.first{box-shadow:0 0 0 5px #fff,0 0 0 11px #ffcc44,0 10px 30px #ad872c55;z-index:8}
+.player-zone.empty .player-count{background:#e5f8ec;color:#187e50}
+.player-zone.champion{border:5px solid #f5b526;background:#fff8c8;box-shadow:0 0 0 4px #fff,0 0 0 12px #f5bc38,0 5px 36px #ffbb3c99;z-index:11}
+.player-zone.champion .player-cue{color:#a86a00;font-size:clamp(14px,1.35vw,19px)}
+.stage{position:absolute;inset:0;width:clamp(295px,44%,740px);height:100%;margin:auto;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:clamp(3px,.8vh,10px);padding:6px 8px;text-align:center;z-index:2;pointer-events:none}
+.stage>*{pointer-events:auto}.turn-badge{background:#fffdf7;border:2px solid #eddcb5;border-radius:15px;padding:5px 13px;box-shadow:0 4px 9px #54492812;max-width:100%;line-height:1.2}
+.board.awaiting-draw .turn-badge{background:color-mix(in srgb,var(--turn-color,#ffca4a) 24%,white);border:4px solid var(--turn-color,#ffca4a);box-shadow:0 0 0 3px white,0 7px 20px color-mix(in srgb,var(--turn-color,#ffca4a) 25%,transparent)}
+.board.awaiting-draw .turn-badge .word{font-size:clamp(22px,2.75vw,38px)}
+.turn-badge .cap{font-size:clamp(9px,.85vw,12px);font-weight:1000;color:#867d82;letter-spacing:.12em}.turn-badge .word{display:block;font-size:clamp(19px,2.15vw,33px);font-weight:1000;line-height:1.07;overflow-wrap:anywhere}
+.card-stack{width:clamp(130px,15vw,203px);height:clamp(165px,29vh,250px);position:relative;flex:none;margin:4px auto;perspective:900px}
+.card-stack::before,.card-stack::after{content:"";position:absolute;inset:0;background:#fff1c8;border:3px solid #efdca6;border-radius:21px;transform:translate(-6px,5px) rotate(-7deg);box-shadow:0 8px 15px #3b383b14}.card-stack::after{transform:translate(7px,2px) rotate(8deg);background:#fff9e8}
+.picture-card{position:absolute;inset:0;z-index:1;border:4px solid #d6b8792a;border-radius:21px;box-shadow:0 9px 0 #4240381a,0 16px 26px #302d381e;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#fff3c5;overflow:hidden}
+.picture-card::before{content:"";position:absolute;right:-32%;top:-34%;width:95%;height:65%;background:#fff5;border-radius:50%}.picture-card.pop{animation:land .35s cubic-bezier(.19,1.3,.32,1)}
+.picture-card .emoji{font-size:clamp(65px,8vw,110px);line-height:1.16;filter:drop-shadow(0 5px 3px #5553)}.picture-card .card-word{position:relative;font-size:clamp(16px,1.65vw,23px);font-weight:1000;letter-spacing:.1em;margin-top:7px}
+.picture-card.cover{background:#f4d68d;border-color:#d4ac58}.picture-card.cover .emoji{font-size:clamp(59px,6vw,86px)}.picture-card[data-type=taco]{background:#c4f0df}.picture-card[data-type=gato]{background:#fff0b6}.picture-card[data-type=cabra]{background:#c8eafa}.picture-card[data-type=queso]{background:#eac9ff}.picture-card[data-type=pizza]{background:#ffcdd8}.picture-card[data-type=gorila]{background:#e6caab}.picture-card[data-type=marmota]{background:#e0f1b4}.picture-card[data-type=narval]{background:#b8ebf6}
+.pile-count{font-size:clamp(11px,1vw,14px);font-weight:1000;color:#80717d}
+.status{font-size:clamp(13px,1.4vw,20px);font-weight:1000;line-height:1.14;max-width:100%;min-height:25px;text-wrap:balance}
+.status.hot{color:#cf4161;font-size:clamp(16px,1.8vw,26px)}
+.helptext{font-size:clamp(10px,1vw,14px);font-weight:850;color:#837b79;max-width:100%;line-height:1.2;text-wrap:balance}
+.progress{width:min(78%,265px);height:11px;border-radius:99px;border:2px solid #e6d7b7;background:#fff;overflow:hidden;display:none;flex:none}.progress>div{height:100%;width:100%;background:#ffba51;transition:width .08s linear}
+.fly-card{position:fixed;z-index:50;display:grid;place-items:center;width:100px;height:130px;border-radius:14px;border:3px solid #edac2e;background:#f4d68d;box-shadow:0 9px 20px #30354e3d;pointer-events:none;font-size:38px;will-change:transform,opacity}.fly-card.payout{width:68px;height:88px;font-size:25px}
+.bottom{display:flex;align-items:center;justify-content:center;gap:12px;flex:none;min-height:32px;background:#fffbe9b8;border-top:1px solid #f0dfb8;padding:4px 12px;text-align:center;color:#7d7173;font-weight:850;font-size:12px}.pill{white-space:nowrap;border:1px solid #e8d7ae;background:#fff2cc;border-radius:9px;padding:3px 8px;color:#705a49}
+.overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:12px;background:#222c438e;backdrop-filter:blur(8px)}.overlay[hidden]{display:none}
+.modal{background:#fffdf5;border:4px solid white;border-radius:26px;box-shadow:0 20px 60px #1d254363;width:min(680px,100%);max-height:95dvh;overflow:auto;padding:clamp(17px,2.5vw,28px);overscroll-behavior:contain}.modal h2{font-size:clamp(24px,3.5vw,38px);font-weight:1000;letter-spacing:-.03em;margin:0 0 7px;text-align:center}.lead{font-size:15px;color:#77737b;text-align:center;margin:0 auto 14px;line-height:1.35;max-width:570px}.setting-title{font-size:13px;font-weight:1000;color:#615b64;text-transform:uppercase;letter-spacing:.07em;margin:14px 0 7px}.choices{display:flex;gap:7px;flex-wrap:wrap}.choice{flex:1 1 60px;border:3px solid #e8e2d7;border-radius:14px;background:white;color:#51485c;font-weight:1000;font-size:18px;padding:10px 5px;min-height:46px}.choice.selected{border-color:#e8b233;background:#fff0b8;color:#513d24}
+.name-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.name-field{display:flex;align-items:center;gap:7px;padding:5px 9px;background:#f6f4ef;border:2px solid #ebe6dd;border-radius:11px}.name-field[hidden]{display:none}.name-dot{width:15px;height:15px;border-radius:50%;flex:none}.name-field input{min-width:0;width:100%;font-weight:850;font-size:16px;border:0;background:transparent;color:var(--ink);padding:6px 0;user-select:text;-webkit-user-select:text}
+.options{display:flex;gap:14px;flex-wrap:wrap;margin:17px 0;font-size:14px;font-weight:800}.options label{display:inline-flex;gap:7px;align-items:center;cursor:pointer}.options input{width:19px;height:19px;accent-color:#e5a82d}.primary{display:block;width:100%;min-height:51px;background:#ffca42;border:0;border-radius:15px;box-shadow:0 5px 0 #dda632;font-size:19px;font-weight:1000;color:#463a2d;margin:16px 0 8px}.secondary{border:0;background:transparent;color:#766986;text-decoration:underline;font-size:14px;font-weight:850;display:block;min-height:36px;margin:auto;padding:6px 15px}
+.rules p{margin:10px 0;font-size:15px;line-height:1.42}.specials{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}.specials div{background:#f3f1e9;border-radius:12px;padding:9px 5px;text-align:center;font-weight:900;font-size:13px}.specials b{display:block;font-size:33px}
+.winner-icon{text-align:center;font-size:clamp(68px,9vw,112px);line-height:1.25;filter:drop-shadow(0 7px 3px #e7b758);animation:trophy-win 1.05s cubic-bezier(.2,1.65,.4,1) both,trophy-float 2.3s ease-in-out 1.05s infinite alternate}
+.winner-overlay{background:radial-gradient(circle at 50% 48%,#fff5b8ad,#2f2b4eb8 83%);overflow:hidden}
+.winner-modal{position:relative;z-index:2;text-align:center;overflow:visible;border:5px solid #f4cb60;background:radial-gradient(circle at 50% 9%,#fff5d1,#fffdf5 70%);box-shadow:0 0 0 7px #fff8,0 22px 80px #4b2e54a8;animation:winner-appear .7s cubic-bezier(.17,1.45,.32,1) both}
+.winner-modal h2{font-size:clamp(27px,4.5vw,49px);color:#a44716;letter-spacing:-.03em;text-shadow:0 2px #ffe7a6;overflow-wrap:anywhere}
+.winner-modal .lead{font-size:clamp(17px,2.2vw,23px);font-weight:950;color:#65514d}
+.win-subtitle{font-size:clamp(12px,1.6vw,18px);font-weight:1000;letter-spacing:.18em;color:#b36a13;margin:2px auto 10px}
+.win-zero{display:inline-block;background:#fff2af;border:3px solid #e4b74b;border-radius:999px;padding:8px 20px;font-size:clamp(17px,2vw,24px);font-weight:1000;color:#6c4b17;margin-bottom:10px}
+.win-confetti{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.confetti-piece{position:absolute;left:var(--x);top:-28px;width:var(--w);height:var(--h);background:var(--color);border-radius:2px;opacity:1;animation:confetti-fall var(--dur) linear var(--delay) infinite;transform:rotate(var(--rotation));will-change:transform}
+@keyframes confetti-fall{0%{transform:translate3d(0,-40px,0) rotate(0deg)}100%{transform:translate3d(var(--drift),110vh,0) rotate(720deg)}}
+@keyframes winner-appear{0%{opacity:0;transform:translateY(35px) scale(.72)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes trophy-win{0%{transform:scale(.25) rotate(-32deg);opacity:0}65%{transform:scale(1.26) rotate(9deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+@keyframes trophy-float{from{transform:translateY(0) rotate(-3deg)}to{transform:translateY(-11px) rotate(3deg)}}
+@media(prefers-reduced-motion:reduce){.win-confetti{display:none}}
+.toast{position:fixed;left:50%;bottom:45px;z-index:200;transform:translate(-50%,14px);padding:11px 18px;border-radius:12px;background:#29334c;color:white;font-weight:900;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:90vw}.toast.show{opacity:1;transform:translate(-50%,0)}
+@keyframes turn-beacon{from{box-shadow:0 0 0 5px white,0 0 0 10px var(--accent),0 0 12px 3px color-mix(in srgb,var(--accent) 38%,transparent)}to{box-shadow:0 0 0 5px #fff,0 0 0 17px color-mix(in srgb,var(--accent) 72%,transparent),0 0 32px 13px color-mix(in srgb,var(--accent) 54%,transparent)}}
+@keyframes tap-bounce{from{translate:0 0}to{translate:0 -5px}}
+@keyframes pulse{to{box-shadow:0 0 0 7px color-mix(in srgb,var(--accent) 31%,transparent),0 12px 21px #2222}}@keyframes penalty{20%,70%{transform:translateY(-50%) rotate(-2deg)}40%,90%{transform:translateY(-50%) rotate(2deg)}}@keyframes land{from{transform:scale(1.18) rotateY(48deg);opacity:.2}to{transform:scale(1) rotateY(0);opacity:1}}@keyframes result-arrive{from{transform:translate(-50%,-45%) scale(.9);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+@media(max-width:1050px){.stage{width:46%}.player-zone{width:24%;border-radius:17px;padding:5px}.brand small{display:none}.bar{min-height:54px}.logo{width:37px;height:37px}}
+@media(orientation:portrait),(max-width:680px){
+ .bar{min-height:50px;padding:5px 7px}.logo{width:32px;height:32px;font-size:19px;border-radius:9px}.brand{gap:5px}.brand h1{font-size:clamp(10px,2.8vw,15px);max-width:205px}.mini{font-size:11px;padding:6px 7px;min-height:34px;border-width:1px}.mini .optional{display:none}#fullBtn{display:none}.actions{gap:3px}
+ .board::before{display:none}.player-zone{width:47%;height:100px;left:2%;border-radius:13px;border-width:2px;padding:3px 4px;gap:2px;transform:none}.player-zone[data-side="right"]{left:51%;right:auto}.player-zone:active{transform:scale(.975)}.player-zone .seat-num{font-size:8px;top:3px;left:5px}.player-name{font-size:clamp(13px,3vw,20px);margin-top:8px}.player-count{padding:1px 6px;font-size:clamp(10px,2.4vw,13px);border-width:1px}.player-symbol{font-size:clamp(18px,4vw,28px)}.player-cue{font-size:clamp(9px,2.15vw,12px)}.player-zone.is-turn .player-cue{font-size:clamp(9px,2.15vw,12px)}.player-zone.penalty{animation:none;border-width:4px;box-shadow:0 0 0 3px #fff,0 0 0 7px #ed6077,0 0 18px #ed607788}.board.awaiting-draw .player-zone:not(.is-turn){opacity:.69}.player-zone.is-turn{border-width:3px;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent),0 0 19px 6px color-mix(in srgb,var(--accent) 48%,transparent)}.player-zone.is-turn::after{font-size:9px;padding:2px 5px;top:3px;right:3px}.player-zone.is-turn .player-name{font-size:clamp(13px,3.1vw,20px);text-underline-offset:1px;text-decoration-thickness:2px}.player-zone.is-turn .player-symbol{animation:none}
+ .stage{inset:25% 0 25%;height:50%;width:98%;gap:3px;padding:3px}.turn-badge{padding:2px 8px;border-width:1px}.board.awaiting-draw .turn-badge{background:color-mix(in srgb,var(--turn-color,#ffca4a) 24%,white);border:4px solid var(--turn-color,#ffca4a);box-shadow:0 0 0 3px white,0 7px 20px color-mix(in srgb,var(--turn-color,#ffca4a) 25%,transparent)}
+.board.awaiting-draw .turn-badge .word{font-size:clamp(22px,2.75vw,38px)}
+.turn-badge .cap{font-size:9px}.turn-badge .word{font-size:clamp(16px,4.8vw,28px)}.card-stack{height:clamp(108px,17vh,210px);width:clamp(101px,24vw,170px);margin:1px}.picture-card{border-radius:13px;border-width:2px}.picture-card .emoji{font-size:clamp(47px,11vw,82px)}.picture-card .card-word{font-size:clamp(12px,3vw,19px);margin-top:1px}.pile-count{font-size:10px}.status{font-size:clamp(11px,2.7vw,16px);min-height:18px}.status.hot{font-size:clamp(13px,3.3vw,20px)}.helptext{font-size:clamp(9px,2.2vw,12px)}.progress{height:7px}.bottom{min-height:25px;font-size:10px;padding:2px 5px;gap:6px}
+}
+@media(max-height:620px) and (orientation:landscape){.bar{min-height:44px;padding:3px 8px}.logo{width:32px;height:32px;font-size:18px}.mini{min-height:31px;padding:4px 7px}.player-name{font-size:clamp(13px,1.5vw,18px)}.player-count{font-size:12px;padding:1px 6px}.player-symbol{font-size:23px}.player-cue{font-size:11px}.card-stack{height:clamp(100px,25vh,155px);width:clamp(90px,12vw,136px)}.picture-card .emoji{font-size:clamp(42px,6vw,66px)}.picture-card .card-word{font-size:14px;margin-top:1px}.turn-badge .word{font-size:clamp(16px,2vw,23px)}.stage{gap:2px}.status{font-size:13px;min-height:18px}.status.hot{font-size:18px}.bottom{min-height:25px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Edición musical: escenario nocturno, violeta y turquesa. */
+:root{--ink:#f6f9ff;--yellow:#50e4d9;--cream:#162143;--paper:#111d40}
+html,body{background:#080f26;color:#f6f9ff}
+.app{background:radial-gradient(ellipse at 50% 50%,#283764,#17234a 52%,#0a1430 95%)}
+.bar{background:#0b1735e8;border-color:#3e4f7a;color:#f7fbff;box-shadow:0 5px 22px #0005}
+.brand h1{letter-spacing:.075em;color:#fff}
+.brand small{color:#b1c1e5}
+.logo{background:linear-gradient(135deg,#35d6d1,#9a85ff);box-shadow:0 4px 0 #2a637b;color:#101b40;font-weight:1000}
+.mini{color:#edf9ff;border-color:#455a82;background:#192848}
+.mini.on{background:#244f59;border-color:#5cdec9}
+.board::before{border-color:#5474af60}
+.player-zone{background:color-mix(in srgb,var(--accent) 17%,#101f41);color:#f9fbff;box-shadow:0 5px 0 #08132c,0 11px 24px #0008}
+.player-zone.is-turn{background:color-mix(in srgb,var(--accent) 30%,#13264b);filter:none;box-shadow:0 0 0 4px #182645,0 0 0 10px var(--accent),0 0 32px color-mix(in srgb,var(--accent) 40%,transparent)}
+.player-zone.is-turn .player-name,.player-zone.is-turn .player-cue{color:#fff}
+.player-zone .player-cue,.player-zone .seat-num{color:var(--accent)}
+.player-zone .player-count{background:#1a2a4a;color:#eafaff;border-color:var(--accent)}
+.player-zone.has-reacted{background:#174b4e;border-color:#4ae6c5}
+.player-zone.penalty{background:#51213d}
+.player-zone.champion{background:#413775}
+.turn-badge{background:#172a4d;border-color:#566f9f;box-shadow:0 6px 19px #0007;color:#e9f8ff}
+.board.awaiting-draw .turn-badge{background:#142b50;border-color:var(--turn-color,#6be7db)}
+.turn-badge .cap{color:#b1bfe2}
+.turn-badge .word{color:#f4fcff;letter-spacing:.04em}
+.card-stack{filter:drop-shadow(0 15px 22px #0008)}
+.card-stack::before,.card-stack::after{background:#26345b;border-color:#4c689e;box-shadow:0 9px 18px #0007}
+.picture-card{background:#f6fbff;border:5px solid #80bbed;color:#22385f;box-shadow:0 6px 0 #12264d,0 14px 27px #0008}
+.picture-card::before{background:#fff8}
+.picture-card.cover{background:linear-gradient(135deg,#343879,#2babae);border-color:#9ae6f4;color:#fff}
+.picture-card.cover .emoji{font-size:clamp(58px,6vw,94px);color:#fff;text-shadow:0 6px #122e62}
+.picture-card[data-type=do]{background:linear-gradient(140deg,#fff,#dbf8ff);border-color:#4ecbd5}
+.picture-card[data-type=re]{background:linear-gradient(140deg,#fff,#e6e3ff);border-color:#9a94f6}
+.picture-card[data-type=mi]{background:linear-gradient(140deg,#fff,#ffe6f2);border-color:#fb8cbe}
+.picture-card[data-type=fa]{background:linear-gradient(140deg,#fff,#fff1d8);border-color:#ffb563}
+.picture-card[data-type=sol]{background:linear-gradient(140deg,#fff,#e0f9e8);border-color:#84d095}
+.picture-card .emoji{display:grid;place-items:center;width:100%;max-width:190px;filter:none}
+.picture-card .emoji svg{display:block;width:100%;height:auto;max-height:140px;overflow:visible;filter:drop-shadow(0 2px #fff8)}
+.picture-card.note-only .card-word{display:none}
+.picture-card.note-only .emoji{max-width:205px}
+.picture-card.note-only .emoji svg{max-height:170px}
+.picture-card .card-word{font-size:clamp(29px,3.1vw,43px);letter-spacing:.13em;color:#1b2a4b;text-shadow:0 2px #fff9}
+.picture-card.cover .card-word{color:#fff;font-size:clamp(13px,1.6vw,22px);letter-spacing:.03em}
+.picture-card.pop{animation:music-reveal .55s cubic-bezier(.15,1.5,.2,1)}
+@keyframes music-reveal{0%{transform:rotateY(80deg) scale(.68);opacity:.35;filter:blur(4px)}70%{transform:rotateY(-8deg) scale(1.06);opacity:1;filter:blur(0)}100%{transform:rotateY(0) scale(1)}}
+.stage.note-playing .card-stack::before{animation:sonic-ring .82s ease-out}
+@keyframes sonic-ring{0%{box-shadow:0 0 0 0 #61e9ffc0,0 0 0 0 #9b88ff9c}100%{box-shadow:0 0 0 36px #61e9ff00,0 0 0 64px #9b88ff00}}
+.pile-count,.helptext{color:#aebfe3}
+.status{color:#f0f8ff}.status.hot{color:#80f9df}
+.fly-card{background:linear-gradient(135deg,#383c86,#2bb6ba);border-color:#83e8ef;color:#fff;box-shadow:0 9px 21px #0007}
+.bottom{background:#0a1634d9;border-color:#2c4169;color:#b7c9e4}
+.pill{background:#1a2d51;border-color:#4b6791;color:#d8faff}
+.overlay{background:#07112ac4;backdrop-filter:blur(11px)}
+.modal{background:linear-gradient(145deg,#223158,#121f3d);border:2px solid #6d81b4;color:#f4faff;box-shadow:0 20px 60px #000b}
+.modal h2{color:#effcff}.lead,.setting-title{color:#c2d4ef}
+.choice{background:#1b2d4c;border-color:#506183;color:#f2f9ff}
+.choice.selected{background:#2e566d;border-color:#63e8dc;color:#efffff}
+.name-field{background:#1a2c4c;border-color:#4b5d81}
+.name-field input{color:#fff}
+.primary{background:linear-gradient(110deg,#50e5d4,#8ba6ff);color:#0c2842;box-shadow:0 5px 0 #2c5c84}
+.secondary{color:#bae4f5}
+.mode-choices{gap:9px}
+.notation-choices,.card-view-choices{gap:9px}
+.notation-choices .choice,.card-view-choices .choice{font-size:clamp(13px,1.6vw,17px);padding:9px 7px;min-height:43px}
+.mode-choices .choice{font-size:15px}
+.note-selection{margin-top:12px;padding:12px;background:#0f203e;border:1px solid #50678b;border-radius:15px}
+.note-selection[hidden]{display:none}
+.note-selection .setting-title{margin:2px 0 7px}
+.note-selection-info,.note-selection-count{font-size:12px;line-height:1.45;color:#bcd4ea;margin:5px 0 9px}
+.note-selection-count{font-weight:850;margin:9px 0 2px;color:#f2db9e}.note-selection-count.ready{color:#86e8e2}
+.note-tools{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0}
+.note-tools button{padding:6px 9px;border:1px solid #6885a9;border-radius:8px;background:#253e62;color:#fff;font-size:12px;font-weight:850}
+.note-choices{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
+.note-choice{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;min-height:41px;border:2px solid #445979;border-radius:10px;background:#1b2b4b;color:#bed1e6;cursor:pointer;font-size:clamp(12px,1.35vw,16px);font-weight:950}
+.note-choice input{position:absolute;width:100%;height:100%;opacity:0;cursor:pointer}
+.note-choice:has(input:checked){background:linear-gradient(135deg,#376778,#3d4e92);border-color:#79e6d9;color:#fff}
+.note-choice:focus-within{outline:2px solid #fff;outline-offset:2px}
+#startBtn:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:680px){.note-choices{grid-template-columns:repeat(4,minmax(0,1fr))}.note-choice{font-size:12px;min-height:38px}}
+.practice{margin:12px 0;padding:11px;background:#0e1e3e;border:1px solid #40567c;border-radius:15px}
+.practice .setting-title{text-align:center;margin:2px 0 8px}
+.practice-notes{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}
+.practice-notes button{flex:1 1 49px;min-height:43px;min-width:45px;border:2px solid #9eccef;border-radius:10px;background:linear-gradient(150deg,#f8fdff,#cfe9ff);color:#172c4c;font-weight:1000}
+.practice-notes button:active{transform:translateY(3px)}
+.practice-help{color:#adc5e4;font-size:12px;text-align:center;margin:7px 0 0}
+.rules p{color:#e8f4ff;line-height:1.5}
+.winner-overlay{background:radial-gradient(circle at 50% 48%,#51448fa8,#0a1736e8 83%)}
+.winner-modal{background:linear-gradient(140deg,#283c68,#152643);border:4px solid #7ee3cf}
+.winner-modal h2{color:#c1fff5;text-shadow:none}
+.winner-modal .lead{color:#d4edff}
+.win-zero{background:#254d59;border-color:#76e8da;color:#e6fffc}
+.win-subtitle{color:#88ecf4}
+@media(max-width:680px),(orientation:portrait){
+ .brand h1{font-size:clamp(11px,2.6vw,16px);letter-spacing:.015em}
+ .picture-card .emoji svg{max-height:78px}
+ .picture-card .card-word{font-size:clamp(24px,6vw,33px)}
+ .picture-card.cover .card-word{font-size:clamp(12px,2.5vw,16px)}
+ .player-zone.is-turn .player-name{color:#fff}
+}
+@media(max-height:620px) and (orientation:landscape){.picture-card .emoji svg{max-height:82px}.picture-card .card-word{font-size:26px}}
+@media(prefers-reduced-motion:reduce){.stage.note-playing .card-stack::before{animation:none}}
+.lang-switch{border-color:#71cdbf;background:#173453;color:#c5fff3;min-width:52px}
+.language-row{display:flex;gap:9px;justify-content:center;margin:8px auto 14px;max-width:360px}
+.language-row .choice{font-size:15px;min-height:42px;padding:7px;flex:1}
+html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
+@media(max-width:680px){.lang-switch{min-width:43px;padding:6px 5px;font-size:12px}.language-row{margin:8px auto 12px}}
+
+</style>
+</head>
+<body>
+<div class="app" id="app">
+ <header class="bar">
+  <div class="brand"><div class="logo" aria-hidden="true">♫</div><div><h1 id="gameTitle">SolfaSprint</h1><small>Juego de oído musical · 2 a 8 jugadores</small></div></div>
+  <div class="actions">
+   <button class="mini lang-switch" id="headerLangBtn" type="button" title="Cambiar a chino tradicional" aria-label="Cambiar idioma">中文</button>
+   <button class="mini" id="rulesBtn" title="Instrucciones">❔ <span class="optional">Reglas</span></button>
+   <button class="mini" id="replayBtn" type="button" title="Volver a escuchar la nota">♫ Repetir</button>
+   <button class="mini" id="fullBtn" title="Pantalla completa">⛶ <span class="optional">Pantalla</span></button>
+   <button class="mini" id="restartBtn" title="Nueva partida">↻ <span class="optional">Nueva</span></button>
+  </div>
+ </header>
+ <main class="board" id="board" aria-label="Tablero de juego">
+  <div id="playerZones"></div>
+  <section class="stage" aria-label="Cartas del centro">
+   <div class="turn-badge"><div class="cap" id="turnCaption">SIGUIENTE JUGADOR</div><strong class="word" id="spokenWord">ESCUCHA ♫</strong></div>
+   <div class="card-stack" id="cardStack" aria-live="polite"><div class="picture-card cover" id="pictureCard"><span class="emoji" id="cardEmoji">♫</span><span class="card-word" id="cardLabel">¿QUÉ NOTA ES?</span></div></div>
+   <div class="pile-count" id="pileCount">Montón: 0 cartas</div>
+   <div class="status" id="status" aria-live="polite">Toca tu zona para sacar la carta</div>
+   <div class="progress" id="progress"><div id="progressFill"></div></div>
+   <div class="helptext" id="helptext">Cuando coincidan el sonido y la carta, ¡todos tocáis vuestra zona!</div>
+  </section>
+
+ </main>
+ <footer class="bottom"><span id="footerInfo">Pulsa tu zona cuando sea tu turno para sacar una carta.</span><span class="pill" id="modeInfo">Sencillo · DO–SOL</span></footer>
+</div>
+<div class="overlay" id="setupOverlay" role="dialog" aria-modal="true" aria-label="Preparar partida">
+ <div class="modal">
+  <h2>♫ SolfaSprint</h2>
+  <p class="lead">Reconoce el sonido y compáralo con la carta. De 2 a 8 jugadores, con zonas táctiles. Funciona sin internet.</p>
+   <div class="language-row" id="languageChoices" aria-label="Idioma de la interfaz"><button type="button" class="choice selected" data-lang="es">Español</button><button type="button" class="choice" data-lang="zh">繁體中文</button></div>
+  <div class="setting-title">¿Cuántos niños juegan?</div>
+  <div class="choices" id="countChoices"></div>
+  <div class="setting-title">Nombres de los jugadores</div>
+  <div class="name-fields" id="nameFields"></div>
+  <div class="setting-title">Duración de la partida</div>
+  <div class="choices" id="speedChoices"><button class="choice selected" type="button" data-cards="12">Normal · 12 cartas</button><button class="choice" type="button" data-cards="6">Rápida · 6 cartas</button></div>
+  <div class="setting-title">Nivel musical</div>
+   <div class="choices mode-choices" id="modeChoices">
+    <button class="choice selected" type="button" data-mode="easy">Sencillo · DO a SOL</button>
+    <button class="choice" type="button" data-mode="hard">Difícil · Cromático</button>
+   </div>
+   <div class="setting-title">Nombre de las notas</div>
+   <div class="choices notation-choices" id="notationChoices">
+    <button class="choice selected" type="button" data-notation="latin">DO · RE · MI · FA · SOL</button>
+    <button class="choice" type="button" data-notation="american">C · D · E · F · G (americano)</button>
+   </div>
+   <div class="setting-title">¿Qué mostrar en la carta?</div>
+   <div class="choices card-view-choices" id="cardViewChoices">
+    <button class="choice selected" type="button" data-card-view="both">Pentagrama y nombre</button>
+    <button class="choice" type="button" data-card-view="staff">Solo pentagrama</button>
+   </div>
+   <div class="note-selection" id="noteSelection" hidden>
+    <div class="setting-title">Elige exactamente 5 sonidos</div>
+    <p class="note-selection-info" id="noteSelectionInfo">Elige cinco alturas de DO4 a DO5. Las notas enarmónicas (por ejemplo, DO♯ y RE♭) son el mismo sonido: puedes escoger una u otra escritura, no ambas a la vez.</p>
+    <div class="note-tools">
+     <button type="button" id="allNotesBtn">5 cromáticas</button>
+     <button type="button" id="naturalNotesBtn">5 naturales</button>
+     <button type="button" id="clearNotesBtn">Quitar todas</button>
+    </div>
+    <div class="note-choices" id="noteChoices" aria-label="Notas cromáticas seleccionables"></div>
+    <p class="note-selection-count" id="noteCount" aria-live="polite"></p>
+   </div>
+   <div class="practice" aria-label="Escuchar notas de referencia"><div class="setting-title">Escucha las notas antes de jugar</div><div class="practice-notes" id="practiceNotes"></div><p class="practice-help">Se oyen las mismas alturas que durante la partida. Ajusta el volumen del dispositivo.</p></div>
+  <button class="primary" id="startBtn" type="button">¡EMPEZAR PARTIDA! ▶</button>
+  <button class="secondary" id="setupRulesBtn" type="button">Ver cómo se juega</button>
+ </div>
+</div>
+<div class="overlay" id="rulesOverlay" role="dialog" aria-modal="true" aria-label="Reglas" hidden>
+ <div class="modal"><h2>📖 Cómo se juega</h2>
+ <div class="rules">
+  <p><b>1.</b> El jugador al que le toca pulsa su zona para lanzar una carta al centro.</p>
+  <p><b>2.</b> En el modo sencillo aparecen <b>DO, RE, MI, FA y SOL</b> (en notación americana: <b>C, D, E, F y G</b>). En el difícil eliges <b>exactamente cinco sonidos distintos</b> entre DO4 y DO5. Puedes usar nombres en español o americano y, si quieres, mostrar <b>solo el pentagrama</b> sin el nombre. El nombre del sonido que suena siempre permanece oculto.</p>
+  <p><b>3.</b> Si <b>el sonido coincide con la carta</b>, todos tocan rápidamente su propia zona. El último en tocar —o quien no toque— recoge el montón. <b>Si hay solo dos jugadores, basta con que pulse el primero</b>: el otro recoge las cartas automáticamente. Si <b>no coinciden</b>, no hay que tocar: quien se precipite recoge las cartas.</p>
+  <p><b>4.</b> Usa <b>«♫ Repetir»</b> para oír otra vez el sonido. Los botones de práctica reflejan las notas elegidas y el sistema de nombres. <b>DO♯ y RE♭</b> (en americano <b>C♯ y D♭</b>) tienen la misma altura: la coincidencia se decide por el sonido. No hay música de fondo que interfiera.</p>
+  <p><b>5.</b> Tras recoger cartas, sigue el siguiente jugador. <b>Gana automáticamente</b> el primero que se queda sin cartas. Hay partidas normales y rápidas de 2 a 8 jugadores. También se puede tocar usando las teclas 1–8.</p>
+  <p>Do grave = DO4 (261,6 Hz), do agudo = DO5 (523,3 Hz): hay 12 intervalos de semitono entre ambos y 13 alturas contando los dos extremos. Para identificar alturas absolutas, prueba primero los botones de práctica.</p>
+ </div>
+ <button class="primary" type="button" id="closeRulesBtn">ENTENDIDO ✓</button></div>
+</div>
+<div class="overlay winner-overlay" id="winOverlay" role="dialog" aria-modal="true" aria-label="Fin de la partida" hidden>
+ <div class="win-confetti" id="winConfetti" aria-hidden="true"></div>
+ <div class="modal winner-modal"><div class="win-subtitle">★ FIN DE PARTIDA ★</div><div class="winner-icon" aria-hidden="true">🏆</div><h2 id="winTitle">¡TENEMOS GANADOR!</h2><div class="win-zero">🃏 0 CARTAS</div><p class="lead" id="winText">¡Enhorabuena!</p>
+ <button class="primary" type="button" id="playAgainBtn">♫ JUGAR OTRA PARTIDA</button><button class="secondary" type="button" id="winCloseBtn">Ver tablero final</button></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+(() => {
+'use strict';
+
+const EASY_IDS=['do','re','mi','fa','sol'];
+// Enarmonía: mismo MIDI, pero posición y alteración escrita diferentes.
+// Posiciones verticales exactas en un pentagrama cuya línea inferior (MI4) es y=118.
+const NOTE_LIST=[
+ {id:'do',word:'DO',midi:60,y:142},
+ {id:'dos',word:'DO♯',midi:61,y:142,acc:'sharp'},
+ {id:'reb',word:'RE♭',midi:61,y:130,acc:'flat'},
+ {id:'re',word:'RE',midi:62,y:130},
+ {id:'res',word:'RE♯',midi:63,y:130,acc:'sharp'},
+ {id:'mib',word:'MI♭',midi:63,y:118,acc:'flat'},
+ {id:'mi',word:'MI',midi:64,y:118},
+ {id:'fa',word:'FA',midi:65,y:106},
+ {id:'fas',word:'FA♯',midi:66,y:106,acc:'sharp'},
+ {id:'solb',word:'SOL♭',midi:66,y:94,acc:'flat'},
+ {id:'sol',word:'SOL',midi:67,y:94},
+ {id:'sols',word:'SOL♯',midi:68,y:94,acc:'sharp'},
+ {id:'lab',word:'LA♭',midi:68,y:82,acc:'flat'},
+ {id:'la',word:'LA',midi:69,y:82},
+ {id:'las',word:'LA♯',midi:70,y:82,acc:'sharp'},
+ {id:'sib',word:'SI♭',midi:70,y:70,acc:'flat'},
+ {id:'si',word:'SI',midi:71,y:70},
+ {id:'do5',word:'DO⁵',midi:72,y:58}
+];
+const TYPES=Object.fromEntries(NOTE_LIST.map(n=>[n.id,n]));
+const ALL_IDS=NOTE_LIST.map(n=>n.id);
+const getPool=()=>state.mode==='hard'?NOTE_LIST.filter(n=>state.selectedNotes.includes(n.id)):EASY_IDS.map(id=>TYPES[id]);
+const AMERICAN_NOTES={DO:'C',RE:'D',MI:'E',FA:'F',SOL:'G',LA:'A',SI:'B'};
+function displayNote(note){
+ if(state.notation!=='american')return note.word;
+ return note.word.replace(/^(DO|RE|MI|FA|SOL|LA|SI)/,solfege=>AMERICAN_NOTES[solfege]);
+}
+function refreshNotationLabels(){
+ $('gameTitle').textContent='SolfaSprint';
+ const easy=$('modeChoices').querySelector('[data-mode="easy"]');
+ easy.textContent=state.notation==='american'?tx('Sencillo · C a G','簡單 · C 到 G'):tx('Sencillo · DO a SOL','簡單 · DO 到 SOL');
+ $('noteSelectionInfo').textContent=state.notation==='american'
+  ?tx('Elige cinco alturas entre C4 y C5. C♯ y D♭ suenan igual y cuentan como un solo sonido; escoge una u otra escritura.','請從 C4 到 C5 選出 5 個不同音高。C♯ 和 D♭ 音高相同，只能選其中一種記譜方式。')
+  :tx('Elige cinco alturas entre DO4 y DO5. DO♯ y RE♭ suenan igual y cuentan como un solo sonido; escoge una u otra escritura.','請從 DO4 到 DO5 選出 5 個不同音高。DO♯ 和 RE♭ 音高相同，只能選其中一種記譜方式。');
+}
+const COLORS=[
+ {main:'#7f87ff',light:'#242a57'},{main:'#42e5d6',light:'#114e57'},
+ {main:'#ffb46f',light:'#5d3d28'},{main:'#c7e97d',light:'#435027'},
+ {main:'#f78ada',light:'#593455'},{main:'#62b5ff',light:'#254571'},
+ {main:'#ffdb87',light:'#5a492e'},{main:'#c2a1ff',light:'#413872'}
+];
+const RACE_MS=7000, RESULT_MS=1100, NON_MATCH_MS=1750, DEAL_MS=690;
+const $=id=>document.getElementById(id);
+const board=$('board'),zones=$('playerZones'),picture=$('pictureCard');
+const state={count:4,cards:12,players:[],pile:[],turn:0,wordIndex:0,phase:'setup',currentCard:null,currentWord:'',dealer:0,
+ responses:new Map(),roundStart:0,roundTimeout:0,raf:0,resultTimer:0,waitInterval:0,extraTimers:[],mode:'easy',lang:'es',notation:'latin',showCardName:true,selectedNotes:EASY_IDS.slice(),notePool:[],special:false,voice:false,sound:false,music:false,animationId:0,penaltyId:-1,fastestId:-1,penaltyCards:0,winnerId:-1};
+let audioCtx=null,toastTimer=0;
+const tx=(es,zh)=>state.lang==='zh'?zh:es;
+const playerLabel=i=>tx('Jugador '+(i+1),'玩家'+(i+1));
+const cardCount=n=>tx(n+' carta'+(n===1?'':'s'),n+' 張牌');
+const modeText=()=> (state.mode==='hard'?tx('Difícil · 5 sonidos','困難 · 5 個音高'):(state.notation==='american'?tx('Sencillo · C–G','簡單 · C–G'):tx('Sencillo · DO–SOL','簡單 · DO–SOL')))+(state.showCardName?'':tx(' · solo pentagrama',' · 只顯示五線譜'));
+const prefersReduced=()=>window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function shuffle(items){const a=items.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function buildDeck(){const ids=state.notePool.map(n=>n.id);const deck=[];const n=Math.max(72,state.count*state.cards);for(let i=0;i<n;i++)deck.push(ids[i%ids.length]);return shuffle(deck);}
+function overlay(id,visible){$(id).hidden=!visible;}
+function t(fn,delay){const id=setTimeout(()=>{state.extraTimers=state.extraTimers.filter(x=>x!==id);fn();},delay);state.extraTimers.push(id);return id;}
+function resetClocks(){clearTimeout(state.roundTimeout);clearTimeout(state.resultTimer);clearInterval(state.waitInterval);cancelAnimationFrame(state.raf);state.extraTimers.forEach(clearTimeout);state.extraTimers=[];document.querySelectorAll('.fly-card').forEach(el=>el.remove());$('progress').style.display='none';}
+function toast(text,ms=1400){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),ms);}
+// Las frecuencias se calculan por igual temperamento desde LA4 = 440 Hz.
+function initAudio(){
+ try{if(!audioCtx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;audioCtx=new AC();}
+ if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});return true;}catch(e){return false;}
+}
+// Sonidos sintetizados en el navegador. Solo las cinco notas del juego.
+// Piano sintético cálido: varias cuerdas armónicas ligeramente desafinadas,
+// ataque percutivo breve y cola natural. Sin archivos ni conexión.
+function playPianoNote(note,offset=0,duration=1.55){
+ const entry=TYPES[note];if(!entry||!initAudio())return;
+ const start=audioCtx.currentTime+.03+offset;
+ const base=440*Math.pow(2,(entry.midi-69)/12);
+ const end=start+Math.max(.45,duration);
+ // El brillo de las frecuencias altas decae más deprisa que el fundamental.
+ const partials=[
+  {n:1,amp:.20,decay:.60},{n:2,amp:.085,decay:.43},
+  {n:3,amp:.043,decay:.33},{n:4,amp:.023,decay:.24},
+  {n:5,amp:.012,decay:.18},{n:6,amp:.006,decay:.15}
+ ];
+ partials.forEach(({n,amp,decay})=>{
+  // Una pequeña inarmonicidad da un ataque más parecido al de cuerda real.
+  const freq=base*n*Math.sqrt((1+.00018*n*n)/(1+.00018));
+  const o=audioCtx.createOscillator(),gain=audioCtx.createGain();
+  o.type='sine';o.frequency.setValueAtTime(freq,start);
+  gain.gain.setValueAtTime(.0001,start);
+  gain.gain.exponentialRampToValueAtTime(amp,start+.009);
+  gain.gain.exponentialRampToValueAtTime(Math.max(.0002,amp*decay),start+.20);
+  gain.gain.exponentialRampToValueAtTime(Math.max(.0002,amp*decay*.37),end-.08);
+  gain.gain.exponentialRampToValueAtTime(.0001,end);
+  o.connect(gain);gain.connect(audioCtx.destination);
+  o.start(start);o.stop(end+.025);
+ });
+ // Segundo hilo de cuerda suave, para el batido natural del piano.
+ const string=audioCtx.createOscillator(),env=audioCtx.createGain();
+ string.type='sine';string.frequency.setValueAtTime(base*1.0007,start);
+ env.gain.setValueAtTime(.0001,start);
+ env.gain.exponentialRampToValueAtTime(.055,start+.012);
+ env.gain.exponentialRampToValueAtTime(.018,end-.09);
+ env.gain.exponentialRampToValueAtTime(.0001,end);
+ string.connect(env);env.connect(audioCtx.destination);
+ string.start(start);string.stop(end+.025);
+ if(offset===0){
+  const stage=document.querySelector('.stage');
+  stage.classList.remove('note-playing');void stage.offsetWidth;stage.classList.add('note-playing');
+  t(()=>stage.classList.remove('note-playing'),1050);
+ }
+}
+function tone(){} // Sin efectos que confundan la audición.
+function musicStop(){}
+function stopVictory(){}
+function playVictoryFanfare(){['do','mi','sol','mi','fa','sol','do5'].forEach((note,i)=>playPianoNote(note,i*.18,i===6?1:.32));}
+
+const MAX_SOUNDS=5;
+const NOTE_PRESETS={
+ naturals:['do','re','mi','fa','sol'],
+ chromatic:['do','dos','res','fas','sols']
+};
+function renderNoteChoices(){
+ const wrap=$('noteChoices');wrap.replaceChildren();
+ for(const note of NOTE_LIST){
+  const label=document.createElement('label');label.className='note-choice';
+  const input=document.createElement('input');input.type='checkbox';
+  input.value=note.id;input.checked=state.selectedNotes.includes(note.id);
+  input.setAttribute('aria-label',displayNote(note));
+  const span=document.createElement('span');span.textContent=displayNote(note);
+  label.append(input,span);wrap.appendChild(label);
+ }
+ const distinct=new Set(getPool().map(n=>n.midi)).size;
+ $('noteCount').textContent=tx(distinct+' de '+MAX_SOUNDS+' sonidos elegidos'+(distinct===MAX_SOUNDS?' ✓':' · Selecciona '+(MAX_SOUNDS-distinct)+' más'),distinct+' / '+MAX_SOUNDS+' 個音高已選擇'+(distinct===MAX_SOUNDS?' ✓':' · 還需選 '+(MAX_SOUNDS-distinct)+' 個'));
+ $('noteCount').classList.toggle('ready',distinct===MAX_SOUNDS);
+ $('startBtn').disabled=state.mode==='hard'&&distinct!==MAX_SOUNDS;
+ renderPractice();
+}
+function renderPractice(){
+ const wrap=$('practiceNotes');wrap.replaceChildren();
+ for(const note of getPool()){
+  const b=document.createElement('button');b.type='button';
+  b.dataset.note=note.id;b.textContent=displayNote(note);
+  b.title=tx('Escuchar ','試聽 ')+displayNote(note);wrap.appendChild(b);
+ }
+ if(!wrap.children.length)wrap.textContent=tx('Elige las notas arriba para escucharlas.','請先在上方選擇音符，才能試聽。');
+}
+function setMode(mode){
+ state.mode=mode==='hard'?'hard':'easy';
+ $('noteSelection').hidden=state.mode!=='hard';
+ for(const b of $('modeChoices').querySelectorAll('[data-mode]'))
+  b.classList.toggle('selected',b.dataset.mode===state.mode);
+ renderNoteChoices();
+}
+function changeSelected(ids){
+ state.selectedNotes=ids.slice(0,MAX_SOUNDS);
+ renderNoteChoices();
+}
+function setupNoteControls(){
+ $('notationChoices').addEventListener('click',event=>{
+  const b=event.target.closest('button[data-notation]');if(!b)return;
+  state.notation=b.dataset.notation;
+  for(const button of $('notationChoices').querySelectorAll('[data-notation]'))
+   button.classList.toggle('selected',button.dataset.notation===state.notation);
+  refreshNotationLabels();renderNoteChoices();
+ });
+ $('cardViewChoices').addEventListener('click',event=>{
+  const b=event.target.closest('button[data-card-view]');if(!b)return;
+  state.showCardName=b.dataset.cardView==='both';
+  for(const button of $('cardViewChoices').querySelectorAll('[data-card-view]'))
+   button.classList.toggle('selected',(button.dataset.cardView==='both')===state.showCardName);
+ });
+ $('modeChoices').addEventListener('click',event=>{
+  const btn=event.target.closest('[data-mode]');if(btn)setMode(btn.dataset.mode);
+ });
+ $('noteChoices').addEventListener('change',event=>{
+  const input=event.target.closest('input[type=checkbox]');if(!input)return;
+  const chosen=TYPES[input.value];
+  if(input.checked){
+   // Sustituir automáticamente una grafía enarmónica por la otra.
+   const equivalent=state.selectedNotes.find(id=>TYPES[id].midi===chosen.midi);
+   if(equivalent){
+    state.selectedNotes=state.selectedNotes.filter(id=>id!==equivalent);
+    state.selectedNotes.push(chosen.id);
+   }else if(state.selectedNotes.length<MAX_SOUNDS){
+    state.selectedNotes.push(chosen.id);
+   }else{
+    toast(tx('Máximo 5 sonidos. Desmarca uno para cambiarlo.','最多只能選 5 個音高。請先取消一個，再選新的。'),2100);
+   }
+  }else{
+   state.selectedNotes=state.selectedNotes.filter(id=>id!==chosen.id);
+  }
+  renderNoteChoices();
+ });
+ $('allNotesBtn').addEventListener('click',()=>changeSelected(NOTE_PRESETS.chromatic));
+ $('naturalNotesBtn').addEventListener('click',()=>changeSelected(NOTE_PRESETS.naturals));
+ $('clearNotesBtn').addEventListener('click',()=>changeSelected([]));
+ setMode('easy');
+ refreshNotationLabels();
+}
+
+const STATIC_ZH=[
+ ['.brand small','音感配對遊戲 · 2–8 位玩家'],
+ ['#rulesBtn .optional','規則'],['#replayBtn','♫ 重播'],
+ ['#fullBtn .optional','螢幕'],['#restartBtn .optional','重開'],
+ ['#setupOverlay .modal > h2','♫ 一起玩音符！'],
+ ['#setupOverlay .modal > p.lead','聽辨音高，再和卡牌上的音符比較。2–8 位玩家可以在同一螢幕觸控遊玩，不需要連網。'],
+ ['#speedChoices [data-cards="12"]','一般 · 12 張牌'],
+ ['#speedChoices [data-cards="6"]','快速 · 6 張牌'],
+ ['#modeChoices [data-mode="hard"]','困難 · 半音階'],
+ ['#notationChoices [data-notation="american"]','C · D · E · F · G（英文字母）'],
+ ['#cardViewChoices [data-card-view="both"]','五線譜和音名'],
+ ['#cardViewChoices [data-card-view="staff"]','只顯示五線譜'],
+ ['#allNotesBtn','5 個半音階音'],['#naturalNotesBtn','5 個自然音'],
+ ['#clearNotesBtn','全部清除'],
+ ['.practice-help','試聽的音高與遊戲中相同。請調整裝置音量。'],
+ ['#startBtn','開始遊戲 ▶'],['#setupRulesBtn','查看玩法'],
+ ['#rulesOverlay h2','📖 遊戲規則'],['#closeRulesBtn','知道了 ✓'],
+ ['#winOverlay .win-subtitle','★ 遊戲結束 ★'],
+ ['#winOverlay .win-zero','🃏 0 張牌'],
+ ['#playAgainBtn','♫ 再玩一局'],['#winCloseBtn','查看最後的牌面']
+];
+const SETTINGS_ZH=[
+ '有幾位小朋友一起玩？','玩家名稱','遊戲長度','音樂難度',
+ '音符名稱顯示方式','卡牌上顯示什麼？','請選擇剛好 5 個音高','開始前先試聽音符'
+];
+const RULES_ZH=[
+ '<b>1.</b> 輪到的玩家點自己的區域，將一張牌放到中央。',
+ '<b>2.</b> 簡單模式使用 <b>DO、RE、MI、FA、SOL</b>（英文字母是 <b>C、D、E、F、G</b>）。困難模式可從 DO4 到 DO5 選擇<b>剛好 5 個不同的音高</b>，包含升降記號。可以選擇唱名或英文字母，也能設定<b>只顯示五線譜</b>，不顯示音名。遊戲不會告訴你聽到的是哪個音。',
+ '<b>3.</b> 如果<b>聲音和卡牌的音高一致</b>，所有玩家要立刻點自己的區域；最後按下或沒按的人要收回整疊牌。<b>如果只有兩位玩家，第一個按下的人就贏得本回合</b>，另一位直接收牌。音高不同時不能亂按，按錯的人要收牌。',
+ '<b>4.</b> 點<b>「♫ 重播」</b>可以再聽一次。試聽按鈕會顯示所選的音符名稱。例如 <b>DO♯ 和 RE♭</b>（英文字母 <b>C♯ 和 D♭</b>）音高相同，判斷是否相符要以聲音為準。遊戲沒有干擾聽音的背景音樂。',
+ '<b>5.</b> 收牌後，換下一位玩家出牌。<b>誰先把手牌出完就自動獲勝</b>。支援 2–8 位玩家、一般與快速模式；也可以按鍵盤上的 1–8 進行操作。',
+ '低音 DO4（261.6 Hz）到高音 DO5（523.3 Hz），兩端共有 13 個不同音高。若覺得辨認單音較難，可先按試聽鍵練習。'
+];
+const ARIA_ZH=[
+ ['#rulesBtn','title','遊戲規則'],['#replayBtn','title','再聽一次音符'],
+ ['#fullBtn','title','全螢幕'],['#restartBtn','title','重新開始'],
+ ['#board','aria-label','遊戲棋盤'],['.stage','aria-label','中央牌區'],
+ ['#setupOverlay','aria-label','遊戲設定'],['#rulesOverlay','aria-label','遊戲規則'],
+ ['#winOverlay','aria-label','遊戲結束'],
+ ['.practice','aria-label','試聽參考音'],
+ ['#noteChoices','aria-label','可選擇的半音階音符']
+];
+const originalUI=new Map();
+function updateStaticLanguage(){
+ for(const [selector,zh] of STATIC_ZH){
+  const node=document.querySelector(selector);if(!node)continue;
+  const key='html:'+selector;
+  if(!originalUI.has(key))originalUI.set(key,node.innerHTML);
+  node.innerHTML=state.lang==='zh'?zh:originalUI.get(key);
+ }
+ document.querySelectorAll('#setupOverlay .setting-title').forEach((node,i)=>{
+  const key='title:'+i;
+  if(!originalUI.has(key))originalUI.set(key,node.textContent);
+  node.textContent=state.lang==='zh'?SETTINGS_ZH[i]:originalUI.get(key);
+ });
+ document.querySelectorAll('#rulesOverlay .rules p').forEach((node,i)=>{
+  const key='rule:'+i;
+  if(!originalUI.has(key))originalUI.set(key,node.innerHTML);
+  node.innerHTML=state.lang==='zh'?RULES_ZH[i]:originalUI.get(key);
+ });
+ for(const [selector,attr,zh] of ARIA_ZH){
+  const node=document.querySelector(selector);if(!node)continue;
+  const key='attr:'+selector+':'+attr;
+  if(!originalUI.has(key))originalUI.set(key,node.getAttribute(attr)||'');
+  node.setAttribute(attr,state.lang==='zh'?zh:originalUI.get(key));
+ }
+}
+function relabelDefaultPlayers(){
+ const fields=[...$('nameFields').querySelectorAll('input')];
+ for(let i=0;i<fields.length;i++){
+  const input=fields[i],es='Jugador '+(i+1),zh='玩家'+(i+1);
+  if(input.value===es||input.value===zh)input.value=playerLabel(i);
+  input.setAttribute('aria-label',tx('Nombre del jugador ','玩家名稱 ')+(i+1));
+ }
+ for(const p of state.players){
+  const es='Jugador '+(p.id+1),zh='玩家'+(p.id+1);
+  if(p.name===es||p.name===zh)p.name=playerLabel(p.id);
+  if(p.zone)p.zone.querySelector('.player-name').textContent=p.name;
+ }
+}
+
+function syncLiveLanguage(){
+ pileText();
+ $('modeInfo').textContent=modeText();
+ if(state.phase==='setup'){
+  $('turnCaption').textContent=tx('SIGUIENTE JUGADOR','下一位玩家');
+  $('spokenWord').textContent=tx('ESCUCHA ♫','♫ 仔細聽');
+  $('status').textContent=tx('Toca tu zona para sacar la carta','點自己的區域出牌');
+  $('helptext').textContent=tx('Cuando coincidan el sonido y la carta, ¡todos tocáis vuestra zona!','聽到的音高與卡牌相同時，大家要立刻按自己的區域！');
+  $('footerInfo').textContent=tx('Pulsa tu zona cuando sea tu turno para sacar una carta.','輪到你時，請點自己的區域出牌。');
+ }else if(state.phase==='ready'){
+  const p=state.players[state.turn];
+  if(p){
+   $('turnCaption').textContent=tx('♫ TURNO DE','♫ 輪到');
+   $('spokenWord').textContent=p.name.toUpperCase();
+   $('status').textContent=tx('👆 ¡'+p.name+', toca tu zona!','👆 '+p.name+'，請點你的區域！');
+   $('helptext').textContent=tx('Los demás esperan. Solo toca el jugador señalado.','其他玩家請等待，只有輪到的人可以出牌。');
+   $('footerInfo').textContent=tx('Turno de '+p.name+': pulsa su zona para lanzar la carta.','輪到 '+p.name+'：請點自己的區域出牌。');
+  }
+ }else if(state.phase==='dealing'){
+  const p=state.players[state.dealer];
+  if(p){
+   $('turnCaption').textContent=tx('CARTA DE '+p.name.toUpperCase(),p.name+' 的卡牌');
+   $('spokenWord').textContent=tx('♫ ESCUCHA','♫ 仔細聽');
+  }
+  $('status').textContent=tx('♫ La carta viaja al centro…','♫ 卡牌正在飛向中央…');
+  $('helptext').textContent=tx('Mirad la carta cuando aparezca.','卡牌出現時，請仔細觀察。');
+ }else if(state.phase==='reaction'||state.phase==='card'){
+  $('turnCaption').textContent=tx('NOTA QUE SUENA','聽聽這個音');
+  $('status').textContent=tx('Escucha y observa','仔細聽、仔細看');
+  $('helptext').textContent=tx('¿Coinciden el sonido y la nota de la carta? ¡Atentos!','聽到的音高與卡牌上的音符相同嗎？注意！');
+ }else if(state.phase==='result'){
+  const p=state.players[state.penaltyId],fast=state.players[state.fastestId];
+  $('turnCaption').textContent=tx('CARTAS RECOGIDAS','收回卡牌');
+  if(p){
+   $('status').textContent=tx('📥 '+p.name+' recoge '+cardCount(state.penaltyCards),'📥 '+p.name+' 收下 '+state.penaltyCards+' 張牌');
+   $('footerInfo').textContent=tx(p.name+' recibe '+cardCount(state.penaltyCards)+'. Saca la siguiente carta el próximo jugador.',p.name+' 收下 '+state.penaltyCards+' 張牌。下一位玩家請出牌。');
+  }
+  $('helptext').textContent=fast?tx('🥇 '+fast.name+' fue el más rápido.','🥇 '+fast.name+' 反應最快！'):tx('Toque equivocado: recoge el montón.','按錯了：把牌堆收回。');
+ }else if(state.phase==='won'){
+  const p=state.players[state.winnerId];
+  if(p){
+   $('turnCaption').textContent=tx('🏆 ¡PARTIDA TERMINADA!','🏆 遊戲結束！');
+   $('spokenWord').textContent=p.name.toUpperCase();
+   $('status').textContent=tx('🎉 ¡'+p.name+' HA GANADO!','🎉 '+p.name+' 獲勝！');
+   $('helptext').textContent=tx('¡Ha llegado a 0 cartas!','手牌已經出完了！');
+   $('footerInfo').textContent=tx('Ganador: '+p.name+' · 0 cartas','贏家：'+p.name+' · 0 張牌');
+   $('winTitle').textContent=tx('¡'+p.name+' HA GANADO!',p.name+' 獲勝！');
+   $('winText').textContent=tx('¡Buen oído y cero cartas! La partida ha terminado.','聽力真棒！手牌清空，遊戲結束。');
+  }
+ }
+ if(state.phase==='setup'||picture.classList.contains('cover')){
+  $('cardLabel').textContent=tx('¿QUÉ NOTA ES?','這是什麼音？');
+ }else if(state.currentCard){
+  const note=TYPES[state.currentCard];
+  $('cardLabel').textContent=state.showCardName?displayNote(note):'';
+  const svg=$('cardEmoji').querySelector('svg');
+  if(svg)svg.setAttribute('aria-label',state.showCardName?tx('Nota '+displayNote(note)+' en pentagrama','五線譜上的音符 '+displayNote(note)):tx('Nota musical sin nombre','不顯示音名的音符'));
+ }
+ $('fullBtn').title=document.fullscreenElement?tx('Salir de pantalla completa','離開全螢幕'):tx('Pantalla completa','全螢幕');
+ if(state.players.length)refreshZones();
+}
+
+function applyLanguage(code){
+ state.lang=code==='zh'?'zh':'es';
+ document.documentElement.lang=state.lang==='zh'?'zh-TW':'es';
+ document.title=tx('DO · RE · MI · FA · SOL — Juego de oído musical','DO · RE · MI · FA · SOL — 音感配對遊戲');
+ updateStaticLanguage();
+ $('headerLangBtn').textContent=state.lang==='zh'?'ES':'中文';
+ $('headerLangBtn').title=tx('Cambiar a chino tradicional','切換成西班牙文');
+ $('headerLangBtn').setAttribute('aria-label',$('headerLangBtn').title);
+ for(const b of $('languageChoices').querySelectorAll('[data-lang]'))
+  b.classList.toggle('selected',b.dataset.lang===state.lang);
+ $('languageChoices').setAttribute('aria-label',tx('Idioma de la interfaz','介面語言'));
+ relabelDefaultPlayers();refreshNotationLabels();renderNoteChoices();syncLiveLanguage();
+}
+
+function populateSettings(){for(let n=2;n<=8;n++){const b=document.createElement('button');b.type='button';b.className='choice'+(n===state.count?' selected':'');b.textContent=n;b.dataset.num=n;$('countChoices').appendChild(b);}
+ for(let i=0;i<8;i++){const l=document.createElement('label');l.className='name-field';l.innerHTML=`<span class="name-dot" style="background:${COLORS[i].main}"></span><input maxlength="16" aria-label="${tx('Nombre del jugador ','玩家名稱 ')}${i+1}" value="${playerLabel(i)}">`;$('nameFields').appendChild(l);}showNames();}
+function showNames(){[...$('nameFields').children].forEach((e,i)=>e.hidden=i>=state.count);[...$('countChoices').children].forEach(b=>b.classList.toggle('selected',Number(b.dataset.num)===state.count));}
+function nextActive(start){for(let i=0;i<state.players.length;i++){const idx=(start+i)%state.players.length;if(state.players[idx].hand.length>0)return idx;}return -1;}
+function createPlayers(){let deck=buildDeck();state.players=[];const names=[...$('nameFields').querySelectorAll('input')];for(let i=0;i<state.count;i++){
+ if(deck.length<state.cards)deck.push(...buildDeck());state.players.push({id:i,name:names[i].value.trim().slice(0,16)||playerLabel(i),color:COLORS[i],hand:deck.splice(0,state.cards),zone:null});}}
+function renderPlayers(){zones.replaceChildren();for(const p of state.players){const btn=document.createElement('button');btn.type='button';btn.className='player-zone';btn.dataset.seat=p.id;
+ btn.style.setProperty('--accent',p.color.main);btn.style.setProperty('--light',p.color.light);
+ btn.innerHTML=`<span class="seat-num">JUGADOR ${p.id+1}</span><span class="player-name"></span><span class="player-count"></span><span class="player-symbol">🃏</span><span class="player-cue">MI TURNO</span>`;
+ btn.querySelector('.player-name').textContent=p.name;
+ btn.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();press(p.id);},{passive:false});
+ btn.addEventListener('click',e=>{if(e.detail===0)press(p.id);});btn.addEventListener('contextmenu',e=>e.preventDefault());zones.appendChild(btn);p.zone=btn;}
+ layoutSeats();refreshZones();}
+function layoutSeats(){const portrait=window.matchMedia('(orientation: portrait)').matches||window.innerWidth<=680;const people=state.players;
+ if(!people.length)return;
+ if(portrait){const topN=Math.ceil(people.length/2),bottomN=people.length-topN;for(const p of people){const top=p.id<topN;const idx=top?p.id:p.id-topN;const n=top?topN:bottomN;const rows=n>2?2:1;const row=Math.floor(idx/2),col=idx%2;const h=n>2?11.2:18;const y0=top?1.6: (n>2?76:79);const y=top? y0+row*12.5 : y0+row*12.5;
+ const full=n===1;p.zone.style.left=full?'8%':(col===0?'2%':'51%');p.zone.style.right='auto';p.zone.style.width=full?'84%':'47%';p.zone.style.top=`${y}%`;p.zone.style.height=`${h}%`;p.zone.dataset.side=col===0?'left':'right';}
+ }else{const leftN=Math.ceil(people.length/2),rightN=people.length-leftN;for(const p of people){const left=p.id%2===0;const row=Math.floor(p.id/2),n=left?leftN:rightN;
+ p.zone.dataset.side=left?'left':'right';p.zone.style.left=left?'1%':'auto';p.zone.style.right=left?'auto':'1%';p.zone.style.width='';p.zone.style.top=`${((row+.5)/n)*100}%`;p.zone.style.height=`calc(${100/n}% - 13px)`;}
+ }}
+function refreshZones(){board.classList.toggle('awaiting-draw',state.phase==='ready');for(const p of state.players){if(!p.zone)continue;const z=p.zone;const hand=p.hand.length;
+ z.querySelector('.seat-num').textContent=tx('JUGADOR ','玩家 ')+(p.id+1);
+  z.querySelector('.player-count').textContent=cardCount(hand);z.classList.toggle('empty',hand===0);z.classList.toggle('champion',state.phase==='won'&&p.id===state.winnerId);z.classList.toggle('penalty',state.phase==='result'&&p.id===state.penaltyId);z.classList.toggle('first',state.phase==='result'&&p.id===state.fastestId);
+ z.classList.toggle('is-turn',state.phase==='ready'&&state.turn===p.id);
+ z.classList.remove('can-react');
+ z.classList.toggle('has-reacted',state.phase==='reaction'&&state.responses.has(p.id));
+ const symbol=z.querySelector('.player-symbol'),cue=z.querySelector('.player-cue');
+ if(state.phase==='ready'&&state.turn===p.id){symbol.textContent='🫵';cue.textContent=tx('♫ ¡SACA TU CARTA!','♫ 請出牌！');}
+ else if(state.phase==='reaction'){symbol.textContent=state.responses.has(p.id)?'✅':'🃏';cue.textContent=state.responses.has(p.id)?tx('TOQUE REGISTRADO','已記錄觸碰'):tx('ESPERA TU TURNO','等候輪次');}
+ else if(state.phase==='result'){if(p.id===state.penaltyId){symbol.textContent='📥';cue.textContent=tx('RECIBE +'+state.penaltyCards+' CARTAS','收下 +'+state.penaltyCards+' 張牌');}else if(p.id===state.fastestId){symbol.textContent='🥇';cue.textContent=tx('EL MÁS RÁPIDO','反應最快');}else{symbol.textContent='🃏';cue.textContent=tx('ESPERA TU TURNO','等候輪次');}}
+ else if(state.phase==='dealing'){symbol.textContent='🃏';cue.textContent=tx('SALIENDO CARTA…','正在出牌…');}
+ else if(state.phase==='won'){symbol.textContent=p.id===state.winnerId?'🏆':'🃏';cue.textContent=p.id===state.winnerId?tx('¡CAMPEÓN!','冠軍！'):tx('PARTIDA TERMINADA','遊戲已結束');}
+ else{symbol.textContent='🃏';cue.textContent=tx('ESPERA TU TURNO','等候輪次');}}
+}
+function showNextTurn(){if(state.phase==='won')return;
+ const empty=state.players.find(p=>p.hand.length===0);if(empty){declareWinner(empty.id);return;}
+ const next=nextActive(state.turn);if(next<0)return;state.turn=next;state.phase='ready';state.penaltyId=-1;state.fastestId=-1;board.style.setProperty('--turn-color',state.players[next].color.main);$('turnCaption').textContent='♫ TURNO DE';$('spokenWord').textContent=state.players[next].name.toUpperCase();$('status').textContent=`👆 ¡${state.players[next].name}, toca tu zona!`;$('status').className='status';$('helptext').textContent='Los demás esperan. Solo toca el jugador señalado.';$('footerInfo').textContent=`Turno de ${state.players[next].name}: pulsa su zona para lanzar la carta.`;refreshZones();syncLiveLanguage();}
+// Partitura vectorial sin clave dibujada: referencia de clave de SOL.
+// Líneas: y=22 FA5 · 46 RE5 · 70 SI4 · 94 SOL4 · 118 MI4.
+// Cada espacio o línea contigua cambia 12 unidades de y (un grado diatónico).
+function showCard(type){
+ const note=TYPES[type];if(!note)return;
+ picture.className='picture-card';picture.dataset.type=type;
+ picture.classList.add('pop');
+ picture.classList.toggle('note-only',!state.showCardName);
+ const x=152,y=note.y;
+ const lines=[22,46,70,94,118].map(yy=>
+  '<line x1="18" y1="'+yy+'" x2="225" y2="'+yy+'" />').join('');
+ const ledger=y>=142?
+  '<line x1="'+(x-26)+'" y1="142" x2="'+(x+26)+'" y2="142" stroke="#182e50" stroke-width="2.8" />':'';
+ let accidental='';
+ // Alteraciones musicales vectoriales, a la IZQUIERDA de la cabeza.
+ // Las líneas horizontales del sostenido cruzan la altura de la nota.
+ if(note.acc==='sharp'){
+  const ax=x-42;
+  accidental='<g stroke="#182e50" fill="none" stroke-linecap="round">'+
+   '<path d="M'+(ax-8)+' '+(y-25)+' L'+(ax-8)+' '+(y+23)+' M'+(ax+6)+' '+(y-27)+' L'+(ax+6)+' '+(y+21)+'" stroke-width="2.5" />'+
+   '<path d="M'+(ax-15)+' '+(y-7)+' L'+(ax+12)+' '+(y-12)+' M'+(ax-15)+' '+(y+9)+' L'+(ax+12)+' '+(y+4)+'" stroke-width="4" />'+
+   '</g>';
+ }else if(note.acc==='flat'){
+  const bx=x-45;
+  accidental='<path d="M'+bx+' '+(y-33)+' L'+bx+' '+(y+13)+
+   ' C'+(bx+11)+' '+(y+11)+' '+(bx+22)+' '+(y+2)+' '+(bx+20)+' '+(y-7)+
+   ' C'+(bx+19)+' '+(y-20)+' '+(bx+5)+' '+(y-15)+' '+bx+' '+(y-9)+
+   '" fill="none" stroke="#182e50" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
+ }
+ const name=state.showCardName?displayNote(note).replace('⁵',tx(' (agudo)','（高音）')):tx('nota musical sin nombre','不顯示音名的音符');
+ $('cardEmoji').innerHTML=
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 166" role="img" aria-label="'+tx(name+' en pentagrama (referencia de clave de sol)','五線譜上的'+name+'（高音譜號位置）')+'">'+
+  '<g stroke="#557090" stroke-width="2.2" stroke-linecap="round">'+lines+'</g>'+
+  ledger+accidental+
+  '<ellipse cx="'+x+'" cy="'+y+'" rx="15.5" ry="10" transform="rotate(-18 '+x+' '+y+')" fill="#182e50"/>'+
+  '<line x1="'+(x+13.5)+'" y1="'+(y-3)+'" x2="'+(x+13.5)+'" y2="'+(y-53)+'" stroke="#182e50" stroke-width="4" stroke-linecap="round"/>'+
+  '</svg>';
+ $('cardLabel').textContent=state.showCardName?displayNote(note):'';
+}
+function pileText(){$('pileCount').textContent=tx('Montón: '+cardCount(state.pile.length),'牌堆：'+state.pile.length+' 張牌');}
+function animateDeal(index,onFinish){const rect=state.players[index].zone.getBoundingClientRect(),target=$('cardStack').getBoundingClientRect();
+ const el=document.createElement('div');el.className='fly-card';el.textContent='';const w=100,h=130;
+ el.style.left=`${rect.left+rect.width/2-w/2}px`;el.style.top=`${rect.top+rect.height/2-h/2}px`;document.body.appendChild(el);
+ const deltaX=(target.left+target.width/2)-(rect.left+rect.width/2),deltaY=(target.top+target.height/2)-(rect.top+rect.height/2);
+ let called=false;function done(){if(called)return;called=true;el.remove();onFinish();}
+ if(prefersReduced()||!el.animate){t(done,110);return;}
+ const a=el.animate([{transform:'translate(0,0) rotate(-22deg) scale(.7)',opacity:.96},{transform:`translate(${deltaX*.74}px,${deltaY*.7-25}px) rotate(8deg) scale(1.05)`,opacity:1,offset:.7},{transform:`translate(${deltaX}px,${deltaY}px) rotate(0deg) scale(1.24)`,opacity:1}],{duration:DEAL_MS,easing:'cubic-bezier(.26,.7,.2,1)',fill:'forwards'});
+ a.onfinish=done;t(done,DEAL_MS+100);
+}
+function animateCollect(index,count){if(prefersReduced())return;const src=$('cardStack').getBoundingClientRect(),target=state.players[index].zone.getBoundingClientRect();const w=68,h=88;
+ for(let j=0;j<Math.min(7,Math.max(2,count));j++){t(()=>{if(state.phase!=='result')return;
+ const el=document.createElement('div');el.className='fly-card payout';el.textContent='🃏';el.style.left=`${src.left+src.width/2-w/2}px`;el.style.top=`${src.top+src.height/2-h/2}px`;document.body.appendChild(el);
+ const dx=(target.left+target.width/2)-(src.left+src.width/2),dy=(target.top+target.height/2)-(src.top+src.height/2);
+ if(!el.animate){t(()=>el.remove(),450);return;}
+ const a=el.animate([{transform:'translate(0,0) rotate(0deg) scale(1)',opacity:1},{transform:`translate(${dx*.58}px,${dy*.42-40}px) rotate(${j%2?16:-16}deg) scale(.92)`,opacity:1,offset:.5},{transform:`translate(${dx}px,${dy}px) rotate(${j%2?-14:14}deg) scale(.48)`,opacity:.3}],{duration:720,easing:'cubic-bezier(.24,.8,.3,1)',fill:'forwards'});
+ a.onfinish=()=>el.remove();t(()=>el.remove(),900);
+ },j*66);}
+}
+function press(id){if(state.phase==='setup'||state.phase==='dealing'||state.phase==='result'||state.phase==='won')return;
+ if(state.phase==='ready'){if(id!==state.turn){tone(230,.11,'triangle',.026);toast(tx('Ahora le toca a '+state.players[state.turn].name+'.','現在輪到 '+state.players[state.turn].name+'。'),1200);return;}flipFrom(id);return;}
+ if(state.phase==='card'){tone(155,.27,'sawtooth',.062);applyPenalty(id,tx('¡Falsa alarma! '+state.players[id].name+' pulsó sin coincidencia.','按錯了！音符不相符，'+state.players[id].name+' 卻按下去了。'),null);return;}
+ if(state.phase==='reaction'){if(state.responses.has(id))return;state.responses.set(id,Math.max(0,performance.now()-state.roundStart));tone(470+id*65,.085,'sine',.055);
+ // En partidas de dos, la primera pulsación válida decide la ronda inmediatamente.
+ if(state.players.length===2||state.responses.size===state.players.length)finishRace();else refreshZones();return;}
+}
+function flipFrom(id){resetClocks();const p=state.players[id];if(!p.hand.length){state.turn=(id+1)%state.players.length;showNextTurn();return;}
+ const type=p.hand.shift();
+ const pitch=TYPES[type].midi;
+ const matches=state.notePool.filter(n=>n.midi===pitch);
+ const different=state.notePool.filter(n=>n.midi!==pitch);
+ // La probabilidad de coincidencia se mantiene cerca de una entre cinco.
+ // Dos grafías enarmónicas cuentan como una coincidencia auditiva.
+ const candidates=(!different.length||Math.random()<.20)?matches:different;
+ const spoken=candidates[Math.floor(Math.random()*candidates.length)].id;
+ state.currentCard=type;state.currentWord=spoken;state.dealer=id;
+ state.turn=(id+1)%state.players.length;state.pile.push(type);state.phase='dealing';const isLastCard=p.hand.length===0;
+ $('turnCaption').textContent=`CARTA DE ${p.name.toUpperCase()}`;$('spokenWord').textContent='♫ ESCUCHA';$('status').textContent='♫ La carta viaja al centro…';$('status').className='status';$('helptext').textContent='Mirad la carta cuando aparezca.';pileText();refreshZones();syncLiveLanguage();tone(365,.10,'triangle',.045);
+ const animID=++state.animationId;animateDeal(id,()=>{if(animID!==state.animationId||state.phase!=='dealing')return;showCard(type);playPianoNote(spoken);
+ // Al revelar la última carta se termina la partida automáticamente.
+ if(isLastCard){declareWinner(id);return;}
+ const match=TYPES[type].midi===TYPES[spoken].midi, special=false;
+ // El juego NO da pistas cuando hay coincidencia: misma pantalla, texto y sonido.
+ $('turnCaption').textContent='NOTA QUE SUENA';
+ $('status').textContent='Escucha y observa';$('status').className='status';
+ $('helptext').textContent='¿Coinciden el sonido y la nota de la carta? ¡Atentos!';
+ if(match||special){state.phase='reaction';state.responses=new Map();state.roundStart=performance.now();
+   // Sin barra, sonido, destellos, mensajes ni animaciones que revelen el acierto.
+   state.roundTimeout=setTimeout(finishRace,RACE_MS);refreshZones();
+ }else{state.phase='card';refreshZones();t(()=>{if(state.phase==='card')showNextTurn();},NON_MATCH_MS);}
+ syncLiveLanguage();
+ });}
+function updateProgress(){if(state.phase!=='reaction')return;const remaining=Math.max(0,1-(performance.now()-state.roundStart)/RACE_MS);$('progressFill').style.width=`${remaining*100}%`; $('progressFill').style.background=remaining<.33?'#e45d68':'#f6ae42';state.raf=requestAnimationFrame(updateProgress);}
+function chooseNonResponder(missed){const dealer=missed.find(p=>p.id===state.dealer);if(dealer)return dealer;for(let step=1;step<=state.players.length;step++){const id=(state.dealer+step)%state.players.length;const p=missed.find(x=>x.id===id);if(p)return p;}return missed[0];}
+function finishRace(){if(state.phase!=='reaction')return;clearTimeout(state.roundTimeout);cancelAnimationFrame(state.raf);$('progress').style.display='none';
+ const responders=state.players.filter(p=>state.responses.has(p.id)).sort((a,b)=>state.responses.get(a.id)-state.responses.get(b.id));const first=responders[0];
+ const missed=state.players.filter(p=>!state.responses.has(p.id));let loser;
+ if(missed.length)loser=chooseNonResponder(missed);else loser=responders[responders.length-1];
+ let detail=missed.length?`${missed.length} jugador${missed.length===1?' no pulsó':'es no pulsaron'} a tiempo.`:`${loser.name} fue el último en pulsar.`;
+ applyPenalty(loser.id,detail,first?first.id:null);
+}
+function applyPenalty(id,reason,fastestId){
+ if(state.phase==='won'||state.phase==='result')return;
+ const p=state.players[id],n=state.pile.length;
+ resetClocks();p.hand.push(...state.pile);state.pile=[];state.wordIndex=0;state.turn=(id+1)%state.players.length;
+ state.phase='result';state.penaltyId=id;state.penaltyCards=n;
+ state.fastestId=Number.isInteger(fastestId)?fastestId:-1;
+ pileText();
+ // Sin cartel central: solo se señala al jugador que recoge y vuelan las cartas.
+ $('turnCaption').textContent='CARTAS RECOGIDAS';
+ $('status').textContent=`📥 ${p.name} recoge ${n} carta${n===1?'':'s'}`;
+ $('status').className='status';
+ $('helptext').textContent=state.fastestId>=0?`🥇 ${state.players[state.fastestId].name} fue el más rápido.`:'Toque equivocado: recoge el montón.';
+ $('footerInfo').textContent=`${p.name} recibe ${n} cartas. Saca la siguiente carta el próximo jugador.`;
+ refreshZones();tone(300,.20,'triangle',.06);
+ animateCollect(id,n);
+ syncLiveLanguage();
+ state.resultTimer=setTimeout(()=>{if(state.phase!=='result')return;showNextTurn();},RESULT_MS);
+}
+function makeConfetti(){const layer=$('winConfetti');layer.replaceChildren();
+ const hues=['#ffcf3e','#ec5e81','#52b5e5','#44bd8b','#b078de','#fff0a0'];
+ const fragment=document.createDocumentFragment();
+ for(let i=0;i<85;i++){
+  const el=document.createElement('i');el.className='confetti-piece';
+  el.style.setProperty('--x',`${(i*.61803398875%1)*100}%`);
+  el.style.setProperty('--w',`${7+i%7}px`);el.style.setProperty('--h',`${9+i%9}px`);
+  el.style.setProperty('--color',hues[i%hues.length]);
+  el.style.setProperty('--dur',`${3.6+(i%11)*.28}s`);
+  el.style.setProperty('--delay',`${-(i%19)*.25}s`);
+  el.style.setProperty('--drift',`${((i*17)%160)-80}px`);
+  el.style.setProperty('--rotation',`${i*23}deg`);
+  fragment.appendChild(el);
+ }
+ layer.appendChild(fragment);
+}
+function declareWinner(id){if(state.phase==='won')return;
+ resetClocks();state.phase='won';state.winnerId=id;musicStop();const p=state.players[id];
+ $('turnCaption').textContent='🏆 ¡PARTIDA TERMINADA!';$('spokenWord').textContent=p.name.toUpperCase();
+ $('status').textContent=`🎉 ¡${p.name} HA GANADO!`;$('status').className='status hot';
+ $('helptext').textContent='¡Ha llegado a 0 cartas!';$('footerInfo').textContent=`Ganador: ${p.name} · 0 cartas`;
+ $('winTitle').textContent=`¡${p.name} HA GANADO!`;
+ $('winText').textContent='¡Buen oído y cero cartas! La partida ha terminado.';
+ refreshZones();syncLiveLanguage();makeConfetti();overlay('winOverlay',true);playVictoryFanfare();
+}
+function initGame(){state.notePool=getPool();if(state.mode==='hard'&&new Set(state.notePool.map(n=>n.midi)).size!==MAX_SOUNDS){toast(tx('Selecciona exactamente 5 sonidos.','請選擇剛好 5 個不同音高。'),2200);return;}resetClocks();stopVictory();++state.animationId;state.special=false;state.voice=false;state.music=false;musicStop();createPlayers();state.pile=[];state.turn=0;state.wordIndex=0;state.phase='ready';state.currentCard=null;state.winnerId=-1;
+ picture.className='picture-card cover';picture.removeAttribute('data-type');$('cardEmoji').textContent='♫';$('cardLabel').textContent=tx('¿QUÉ NOTA ES?','這是什麼音？');pileText();overlay('setupOverlay',false);overlay('winOverlay',false);
+ renderPlayers();showNextTurn();$('modeInfo').textContent=modeText();initAudio();}
+function newGameSetup(){resetClocks();stopVictory();++state.animationId;musicStop();state.phase='setup';overlay('winOverlay',false);overlay('setupOverlay',true);syncLiveLanguage();}
+function showRules(){overlay('rulesOverlay',true);}function hideRules(){overlay('rulesOverlay',false);}
+$('countChoices').addEventListener('click',e=>{const b=e.target.closest('button[data-num]');if(!b)return;state.count=Number(b.dataset.num);showNames();});
+$('speedChoices').addEventListener('click',e=>{const b=e.target.closest('button[data-cards]');if(!b)return;state.cards=Number(b.dataset.cards);[...$('speedChoices').querySelectorAll('button')].forEach(x=>x.classList.toggle('selected',Number(x.dataset.cards)===state.cards));});
+$('startBtn').addEventListener('click',initGame);$('rulesBtn').addEventListener('click',showRules);$('setupRulesBtn').addEventListener('click',showRules);$('closeRulesBtn').addEventListener('click',hideRules);
+$('restartBtn').addEventListener('click',newGameSetup);$('playAgainBtn').addEventListener('click',initGame);$('winCloseBtn').addEventListener('click',()=>overlay('winOverlay',false));
+$('replayBtn').addEventListener('click',()=>{if((state.phase==='card'||state.phase==='reaction')&&state.currentWord)playPianoNote(state.currentWord);else toast(tx('Saca una carta para escuchar su nota.','請先出牌，再試聽音符。'));});
+$('practiceNotes').addEventListener('click',e=>{const b=e.target.closest('button[data-note]');if(!b)return;playPianoNote(b.dataset.note);});
+$('fullBtn').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch(e){toast(tx('Tu navegador no permite pantalla completa.','你的瀏覽器不支援全螢幕模式。'));}});
+document.addEventListener('fullscreenchange',()=>{$('fullBtn').title=document.fullscreenElement?tx('Salir de pantalla completa','離開全螢幕'):tx('Pantalla completa','全螢幕');});
+window.addEventListener('resize',layoutSeats);
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&audioCtx&&audioCtx.state==='running')audioCtx.suspend().catch(()=>{});});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('rulesOverlay').hidden)hideRules();if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON')return;if(state.phase==='setup'||!$('rulesOverlay').hidden||!$('winOverlay').hidden)return;
+ if(/^[1-8]$/.test(e.key)){e.preventDefault();press(Number(e.key)-1);} });
+document.addEventListener('contextmenu',e=>{if(e.target.closest('.board'))e.preventDefault();});
+document.addEventListener('touchmove',e=>{if(e.target.closest('.board'))e.preventDefault();},{passive:false});
+$('headerLangBtn').addEventListener('click',()=>applyLanguage(state.lang==='es'?'zh':'es'));
+$('languageChoices').addEventListener('click',event=>{const b=event.target.closest('button[data-lang]');if(b)applyLanguage(b.dataset.lang);});
+populateSettings();setupNoteControls();applyLanguage('es');
+})();
+</script>
+</body>
+</html>
