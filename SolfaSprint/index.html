@@ -524,11 +524,11 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
  <div class="modal"><h2>📖 Cómo se juega</h2>
  <div class="rules">
   <p><b>1.</b> En modo manual, el jugador de turno toca su zona para lanzar una carta. En modo automático, la siguiente carta sale sola siguiendo las pausas habituales del juego. En ambos modos, todos deben tocar su zona cuando el sonido coincida con la carta.</p>
-  <p><b>2.</b> En el modo sencillo aparecen <b>DO, RE, MI, FA y SOL</b> (en notación americana: <b>C, D, E, F y G</b>). En el difícil eliges <b>exactamente cinco sonidos distintos</b> entre DO4 y DO5. Puedes usar nombres en español o americano y, si quieres, mostrar <b>solo el pentagrama</b> sin el nombre. El nombre del sonido que suena siempre permanece oculto.</p>
+  <p><b>2.</b> Elige <b>clave de sol o clave de fa</b>. Cambian tanto las posiciones del pentagrama como el sonido real del piano: clave de sol utiliza DO4–DO5 y clave de fa DO3–DO4. En el modo sencillo aparecen <b>DO, RE, MI, FA y SOL</b> (C, D, E, F y G); en el difícil eliges <b>cinco sonidos distintos</b> de la octava correspondiente. Puedes mostrar solo el pentagrama, sin nombres. El sonido que se oye no se identifica por escrito.</p>
   <p><b>3.</b> Si <b>el sonido coincide con la carta</b>, todos tocan rápidamente su propia zona. <b>Cada jugador que no toque a tiempo recibe una copia de todo el montón</b>. Si todos tocan, el último recoge el montón. <b>Si hay solo dos jugadores, basta con que pulse el primero</b>: el otro recoge las cartas automáticamente. Si nadie toca, todos reciben la misma cantidad de cartas que haya en el montón. Si <b>no coinciden</b>, no hay que tocar: quien se precipite recoge las cartas. <b>El tiempo es el mismo en ambos casos: 1,75 segundos</b>, tanto si las notas coinciden como si no.</p>
   <p><b>4.</b> Usa <b>«♫ Repetir»</b> para oír otra vez el sonido. Los botones de práctica reflejan las notas elegidas y el sistema de nombres. <b>DO♯ y RE♭</b> (en americano <b>C♯ y D♭</b>) tienen la misma altura: la coincidencia se decide por el sonido. No hay música de fondo que interfiera.</p>
   <p><b>5.</b> Tras recoger cartas, sigue el siguiente jugador. <b>Gana automáticamente</b> el primero que se queda sin cartas. Hay partidas normales y rápidas de 2 a 8 jugadores. También se puede tocar usando las teclas 1–8.</p>
-  <p>Do grave = DO4 (261,6 Hz), do agudo = DO5 (523,3 Hz): hay 12 intervalos de semitono entre ambos y 13 alturas contando los dos extremos. Para identificar alturas absolutas, prueba primero los botones de práctica.</p>
+  <p>Clave de sol: DO4 (261,6 Hz) a DO5 (523,3 Hz). Clave de fa: DO3 (130,8 Hz) a DO4 (261,6 Hz). Cada octava incluye 13 alturas cromáticas contando ambos extremos. Puedes escuchar antes las notas de práctica.</p>
  </div>
  <button class="primary" type="button" id="closeRulesBtn">ENTENDIDO ✓</button></div>
 </div>
@@ -606,9 +606,14 @@ function refreshNotationLabels(){
  $('gameTitle').textContent='SolfaSprint';
  const easy=$('modeChoices').querySelector('[data-mode="easy"]');
  easy.textContent=state.notation==='american'?tx('Sencillo · C a G','簡單 · C 到 G'):tx('Sencillo · DO a SOL','簡單 · DO 到 SOL');
+ const bass=state.clef==='bass';
  $('noteSelectionInfo').textContent=state.notation==='american'
-  ?tx('Elige cinco alturas entre C4 y C5. C♯ y D♭ suenan igual y cuentan como un solo sonido; escoge una u otra escritura.','請從 C4 到 C5 選出 5 個不同音高。C♯ 和 D♭ 音高相同，只能選其中一種記譜方式。')
-  :tx('Elige cinco alturas entre DO4 y DO5. DO♯ y RE♭ suenan igual y cuentan como un solo sonido; escoge una u otra escritura.','請從 DO4 到 DO5 選出 5 個不同音高。DO♯ 和 RE♭ 音高相同，只能選其中一種記譜方式。');
+  ?(bass
+    ?tx('Clave de fa: elige cinco alturas entre C3 y C4. C♯ y D♭ cuentan como el mismo sonido.','低音譜號：從 C3 到 C4 選出 5 個不同音高。C♯ 和 D♭ 算同一個音。')
+    :tx('Elige cinco alturas entre C4 y C5. C♯ y D♭ suenan igual y cuentan como un solo sonido; escoge una u otra escritura.','請從 C4 到 C5 選出 5 個不同音高。C♯ 和 D♭ 音高相同，只能選其中一種記譜方式。'))
+  :(bass
+    ?tx('Clave de fa: elige cinco alturas entre DO3 y DO4. DO♯ y RE♭ cuentan como el mismo sonido.','低音譜號：從 DO3 到 DO4 選出 5 個不同音高。DO♯ 和 RE♭ 算同一個音。')
+    :tx('Elige cinco alturas entre DO4 y DO5. DO♯ y RE♭ suenan igual y cuentan como un solo sonido; escoge una u otra escritura.','請從 DO4 到 DO5 選出 5 個不同音高。DO♯ 和 RE♭ 音高相同，只能選其中一種記譜方式。'));
 }
 const COLORS=[
  {main:'#7f87ff',light:'#242a57'},{main:'#42e5d6',light:'#114e57'},
@@ -815,11 +820,11 @@ const SETTINGS_ZH=[
 ];
 const RULES_ZH=[
  '<b>1.</b> 手動模式由輪到的玩家點擊自己的區域出牌。自動模式會依照原本的遊戲節奏自動出牌。不論哪種模式，只要聲音和卡牌音高一致，大家都要立刻點自己的區域。',
- '<b>2.</b> 簡單模式使用 <b>DO、RE、MI、FA、SOL</b>（英文字母是 <b>C、D、E、F、G</b>）。困難模式可從 DO4 到 DO5 選擇<b>剛好 5 個不同的音高</b>，包含升降記號。可以選擇唱名或英文字母，也能設定<b>只顯示五線譜</b>，不顯示音名。遊戲不會告訴你聽到的是哪個音。',
+ '<b>2.</b> 可選擇<b>高音譜號或低音譜號</b>，五線譜位置與鋼琴音高會同時改變。高音譜號使用 DO4–DO5，低音譜號使用 DO3–DO4。簡單模式使用 DO、RE、MI、FA、SOL（C、D、E、F、G），困難模式需選擇<b>五個不同音高</b>。可使用唱名、字母，或<b>只顯示五線譜</b>。聽到的音不會顯示答案。',
  '<b>3.</b> 如果<b>聲音和卡牌的音高一致</b>，所有玩家要立刻點自己的區域；<b>每位沒有及時按下的玩家都要收下完整牌堆的相同數量</b>。如果所有人都按了，最後按下的玩家收牌。<b>如果只有兩位玩家，第一個按下的人就贏得本回合</b>，另一位直接收牌。如果所有人都沒有按下，<b>所有玩家都會收到與牌堆相同數量的卡牌</b>。音高不同時不能亂按，按錯的人要收牌。<b>不論音高是否相符，反應時間都一樣：1.75 秒。</b>',
  '<b>4.</b> 點<b>「♫ 重播」</b>可以再聽一次。試聽按鈕會顯示所選的音符名稱。例如 <b>DO♯ 和 RE♭</b>（英文字母 <b>C♯ 和 D♭</b>）音高相同，判斷是否相符要以聲音為準。遊戲沒有干擾聽音的背景音樂。',
  '<b>5.</b> 收牌後，換下一位玩家出牌。<b>誰先把手牌出完就自動獲勝</b>。支援 2–8 位玩家、一般與快速模式；也可以按鍵盤上的 1–8 進行操作。',
- '低音 DO4（261.6 Hz）到高音 DO5（523.3 Hz），兩端共有 13 個不同音高。若覺得辨認單音較難，可先按試聽鍵練習。'
+ '高音譜號從 DO4（261.6 Hz）到 DO5（523.3 Hz）；低音譜號從 DO3（130.8 Hz）到 DO4（261.6 Hz）。每個八度包含 13 個半音高度（含兩端），可先試聽練習。'
 ];
 const ARIA_ZH=[
  ['#rulesBtn','title','遊戲規則'],['#replayBtn','title','再聽一次音符'],
@@ -1013,14 +1018,19 @@ function showNextTurn(){if(state.phase==='won')return;
 // Cada espacio o línea contigua cambia 12 unidades de y (un grado diatónico).
 function showCard(type){
  const note=TYPES[type];if(!note)return;
- picture.className='picture-card';picture.dataset.type=type;
+ picture.className='picture-card';picture.dataset.type=state.clef==='bass'?type.replace(/^b/,'').replace(/[0-9]+$/,''):type;
  picture.classList.add('pop');
  picture.classList.toggle('note-only',!state.showCardName);
- const x=152,y=note.y;
- const lines=[22,46,70,94,118].map(yy=>
+ const x=152,y=note.y,bass=state.clef==='bass';
+ const lines=(bass?[59,83,107,131,155]:[22,46,70,94,118]).map(yy=>
   '<line x1="18" y1="'+yy+'" x2="225" y2="'+yy+'" />').join('');
- const ledger=y>=142?
-  '<line x1="'+(x-26)+'" y1="142" x2="'+(x+26)+'" y2="142" stroke="#182e50" stroke-width="2.8" />':'';
+ const ledger=(bass&&y===35)||(!bass&&y>=142)?
+  '<line x1="'+(x-26)+'" y1="'+(bass?35:142)+'" x2="'+(x+26)+'" y2="'+(bass?35:142)+'" stroke="#182e50" stroke-width="2.8" />':'';
+ // La clave de FA se dibuja vectorialmente y sus dos puntos enmarcan FA3 (y=83).
+ const clef=bass?
+  '<g fill="none" stroke="#182e50" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">'+
+  '<path d="M43 85 C34 73 26 81 30 89 C34 95 42 88 40 83 C50 83 54 94 50 106 C46 119 37 129 25 134"/>'+
+  '</g><circle cx="72" cy="71" r="4.3" fill="#182e50"/><circle cx="72" cy="95" r="4.3" fill="#182e50"/>':'';
  let accidental='';
  // Alteraciones musicales vectoriales, a la IZQUIERDA de la cabeza.
  // Las líneas horizontales del sostenido cruzan la altura de la nota.
@@ -1037,14 +1047,18 @@ function showCard(type){
    ' C'+(bx+19)+' '+(y-20)+' '+(bx+5)+' '+(y-15)+' '+bx+' '+(y-9)+
    '" fill="none" stroke="#182e50" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
  }
- const name=state.showCardName?displayNote(note).replace('⁵',tx(' (agudo)','（高音）')):tx('nota musical sin nombre','不顯示音名的音符');
+ const name=state.showCardName?displayNote(note).replace(/[⁴⁵]/g,tx(' (agudo)','（高音）')):tx('nota musical sin nombre','不顯示音名的音符');
+ const stemDown=bass&&y<=83;
+ const stem=stemDown?
+  '<line x1="'+(x-14)+'" y1="'+(y+2)+'" x2="'+(x-14)+'" y2="'+(y+57)+'" stroke="#182e50" stroke-width="4" stroke-linecap="round"/>':
+  '<line x1="'+(x+13.5)+'" y1="'+(y-3)+'" x2="'+(x+13.5)+'" y2="'+(y-53)+'" stroke="#182e50" stroke-width="4" stroke-linecap="round"/>';
+ const clefLabel=bass?tx('clave de fa','低音譜號'):tx('clave de sol','高音譜號');
  $('cardEmoji').innerHTML=
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 166" role="img" aria-label="'+tx(name+' en pentagrama (referencia de clave de sol)','五線譜上的'+name+'（高音譜號位置）')+'">'+
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 '+(bass?194:166)+'" role="img" aria-label="'+name+' · '+clefLabel+'">'+
   '<g stroke="#557090" stroke-width="2.2" stroke-linecap="round">'+lines+'</g>'+
-  ledger+accidental+
+  clef+ledger+accidental+
   '<ellipse cx="'+x+'" cy="'+y+'" rx="15.5" ry="10" transform="rotate(-18 '+x+' '+y+')" fill="#182e50"/>'+
-  '<line x1="'+(x+13.5)+'" y1="'+(y-3)+'" x2="'+(x+13.5)+'" y2="'+(y-53)+'" stroke="#182e50" stroke-width="4" stroke-linecap="round"/>'+
-  '</svg>';
+  stem+'</svg>';
  $('cardLabel').textContent=state.showCardName?displayNote(note):'';
 }
 function pileText(){$('pileCount').textContent=tx('Montón: '+cardCount(state.pile.length),'牌堆：'+state.pile.length+' 張牌');}
