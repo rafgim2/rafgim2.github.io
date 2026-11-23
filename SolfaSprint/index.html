@@ -297,6 +297,35 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
  .player-zone .player-count-row .player-count{padding:2px 7px}
  .player-zone .player-cue{margin-top:2px}
 }
+
+/* Nombre único y destacado en la cabecera de cada zona de jugador. */
+.player-zone .seat-num{display:none}
+.player-zone .player-name,
+.player-zone.is-turn .player-name{
+ position:absolute;top:clamp(17px,2.8vh,32px);left:11px;right:11px;
+ width:auto;max-width:none;margin:0;padding:0 2px 7px;
+ font-size:clamp(23px,2.45vw,36px);font-weight:1000;
+ line-height:1.12;text-align:center;white-space:nowrap;
+ overflow:hidden;text-overflow:ellipsis;color:#fff;
+ text-decoration:none;
+ border-bottom:2px solid color-mix(in srgb,var(--accent) 64%,transparent);
+ text-shadow:0 2px 5px #0005;z-index:2;
+}
+@media(max-width:680px),(orientation:portrait){
+ .player-zone .player-name,
+ .player-zone.is-turn .player-name{
+  position:static;left:auto;right:auto;top:auto;width:100%;
+  max-width:95%;margin:0 0 2px;padding:0 1px 3px;
+  font-size:clamp(15px,3.4vw,22px);border-bottom-width:1px;
+ }
+}
+@media(max-height:620px) and (orientation:landscape){
+ .player-zone .player-name,
+ .player-zone.is-turn .player-name{
+  top:8px;font-size:clamp(17px,2vw,25px);
+  padding-bottom:4px;
+ }
+}
 </style>
 </head>
 <body>
@@ -768,7 +797,7 @@ function createPlayers(){let deck=buildDeck();state.players=[];const names=[...$
  if(deck.length<state.cards)deck.push(...buildDeck());state.players.push({id:i,name:names[i].value.trim().slice(0,16)||playerLabel(i),color:COLORS[i],hand:deck.splice(0,state.cards),zone:null});}}
 function renderPlayers(){zones.replaceChildren();for(const p of state.players){const btn=document.createElement('button');btn.type='button';btn.className='player-zone';btn.dataset.seat=p.id;
  btn.style.setProperty('--accent',p.color.main);btn.style.setProperty('--light',p.color.light);
- btn.innerHTML=`<span class="seat-num">JUGADOR ${p.id+1}</span><span class="player-name"></span><span class="player-count-row"><span class="player-count"><strong class="card-total">0</strong><small class="card-unit">cartas</small></span><span class="player-symbol" aria-hidden="true"><span class="deck-card"></span></span></span><span class="player-cue">MI TURNO</span>`;
+ btn.innerHTML=`<span class="player-name"></span><span class="player-count-row"><span class="player-count"><strong class="card-total">0</strong><small class="card-unit">cartas</small></span><span class="player-symbol" aria-hidden="true"><span class="deck-card"></span></span></span><span class="player-cue">MI TURNO</span>`;
  btn.querySelector('.player-name').textContent=p.name;
  btn.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();press(p.id);},{passive:false});
  btn.addEventListener('click',e=>{if(e.detail===0)press(p.id);});btn.addEventListener('contextmenu',e=>e.preventDefault());zones.appendChild(btn);p.zone=btn;}
@@ -781,7 +810,6 @@ function layoutSeats(){const portrait=window.matchMedia('(orientation: portrait)
  p.zone.dataset.side=left?'left':'right';p.zone.style.left=left?'1%':'auto';p.zone.style.right=left?'auto':'1%';p.zone.style.width='';p.zone.style.top=`${((row+.5)/n)*100}%`;p.zone.style.height=`calc(${100/n}% - 13px)`;}
  }}
 function refreshZones(){board.classList.toggle('auto-draw',state.autoDraw);board.classList.toggle('awaiting-draw',state.phase==='ready');for(const p of state.players){if(!p.zone)continue;const z=p.zone;const hand=p.hand.length;
- z.querySelector('.seat-num').textContent=tx('JUGADOR ','玩家 ')+(p.id+1);
   z.querySelector('.card-total').textContent=hand;z.querySelector('.card-unit').textContent=tx(hand===1?'carta':'cartas','張牌');z.classList.toggle('empty',hand===0);z.classList.toggle('champion',state.phase==='won'&&p.id===state.winnerId);z.classList.toggle('penalty',state.phase==='result'&&p.id===state.penaltyId);z.classList.toggle('first',state.phase==='result'&&p.id===state.fastestId);
  z.classList.toggle('is-turn',state.phase==='ready'&&state.turn===p.id);
  z.classList.remove('can-react');
