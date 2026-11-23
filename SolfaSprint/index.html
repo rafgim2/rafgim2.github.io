@@ -201,6 +201,28 @@ html,body{background:#080f26;color:#f6f9ff}
 html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
 @media(max-width:680px){.lang-switch{min-width:43px;padding:6px 5px;font-size:12px}.language-row{margin:8px auto 12px}}
 
+/* Marcador de cartas prioritario: cifra muy visible en cada jugador. */
+.player-zone .player-count{
+ display:flex;align-items:baseline;justify-content:center;gap:7px;
+ background:#fff;color:#142845;border:3px solid var(--accent);
+ border-radius:15px;padding:2px 12px;line-height:1;min-width:92px;
+ font-size:initial;font-weight:900;font-variant-numeric:tabular-nums;
+ box-shadow:0 3px 9px #0003;
+}
+.player-zone .player-count .card-total{font-size:clamp(34px,4.2vw,64px);font-weight:1000;line-height:1;letter-spacing:-.045em}
+.player-zone .player-count .card-unit{font-size:clamp(10px,.9vw,14px);font-weight:850;text-transform:uppercase;letter-spacing:.04em}
+.player-zone.empty .player-count{background:#c8ffe8;color:#0c6244}
+@media(max-width:680px),(orientation:portrait){
+ .player-zone .player-count{padding:2px 7px;min-width:66px;gap:5px;border-width:2px;border-radius:10px}
+ .player-zone .player-count .card-total{font-size:clamp(27px,7vw,42px)}
+ .player-zone .player-count .card-unit{font-size:10px}
+ .player-zone .player-symbol{font-size:clamp(14px,3vw,22px)}
+}
+@media(max-height:620px) and (orientation:landscape){
+ .player-zone .player-count{padding:1px 9px}
+ .player-zone .player-count .card-total{font-size:clamp(27px,5vh,40px)}
+ .player-zone .player-count .card-unit{font-size:10px}
+}
 </style>
 </head>
 <body>
@@ -672,7 +694,7 @@ function createPlayers(){let deck=buildDeck();state.players=[];const names=[...$
  if(deck.length<state.cards)deck.push(...buildDeck());state.players.push({id:i,name:names[i].value.trim().slice(0,16)||playerLabel(i),color:COLORS[i],hand:deck.splice(0,state.cards),zone:null});}}
 function renderPlayers(){zones.replaceChildren();for(const p of state.players){const btn=document.createElement('button');btn.type='button';btn.className='player-zone';btn.dataset.seat=p.id;
  btn.style.setProperty('--accent',p.color.main);btn.style.setProperty('--light',p.color.light);
- btn.innerHTML=`<span class="seat-num">JUGADOR ${p.id+1}</span><span class="player-name"></span><span class="player-count"></span><span class="player-symbol">🃏</span><span class="player-cue">MI TURNO</span>`;
+ btn.innerHTML=`<span class="seat-num">JUGADOR ${p.id+1}</span><span class="player-name"></span><span class="player-count"><strong class="card-total">0</strong><small class="card-unit">cartas</small></span><span class="player-symbol">🃏</span><span class="player-cue">MI TURNO</span>`;
  btn.querySelector('.player-name').textContent=p.name;
  btn.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();press(p.id);},{passive:false});
  btn.addEventListener('click',e=>{if(e.detail===0)press(p.id);});btn.addEventListener('contextmenu',e=>e.preventDefault());zones.appendChild(btn);p.zone=btn;}
@@ -686,7 +708,7 @@ function layoutSeats(){const portrait=window.matchMedia('(orientation: portrait)
  }}
 function refreshZones(){board.classList.toggle('auto-draw',state.autoDraw);board.classList.toggle('awaiting-draw',state.phase==='ready');for(const p of state.players){if(!p.zone)continue;const z=p.zone;const hand=p.hand.length;
  z.querySelector('.seat-num').textContent=tx('JUGADOR ','玩家 ')+(p.id+1);
-  z.querySelector('.player-count').textContent=cardCount(hand);z.classList.toggle('empty',hand===0);z.classList.toggle('champion',state.phase==='won'&&p.id===state.winnerId);z.classList.toggle('penalty',state.phase==='result'&&p.id===state.penaltyId);z.classList.toggle('first',state.phase==='result'&&p.id===state.fastestId);
+  z.querySelector('.card-total').textContent=hand;z.querySelector('.card-unit').textContent=tx(hand===1?'carta':'cartas','張牌');z.classList.toggle('empty',hand===0);z.classList.toggle('champion',state.phase==='won'&&p.id===state.winnerId);z.classList.toggle('penalty',state.phase==='result'&&p.id===state.penaltyId);z.classList.toggle('first',state.phase==='result'&&p.id===state.fastestId);
  z.classList.toggle('is-turn',state.phase==='ready'&&state.turn===p.id);
  z.classList.remove('can-react');
  z.classList.toggle('has-reacted',state.phase==='reaction'&&state.responses.has(p.id));
