@@ -221,6 +221,18 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
  .player-zone .player-count{padding:1px 9px}
  .player-zone .player-count .card-total,.player-zone .player-count .card-unit{font-size:clamp(17px,4vh,27px)}
 }
+/* Carta grande junto al contador, no debajo. */
+.player-zone .player-count-row{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:clamp(7px,1.1vw,17px);width:100%;min-width:0}
+.player-zone .player-count-row .player-count{flex:0 1 auto;min-width:0}
+.player-zone .player-count-row .player-symbol{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:clamp(43px,5.2vw,78px);line-height:1;filter:drop-shadow(0 3px 3px #0005)}
+@media(max-width:680px),(orientation:portrait){
+ .player-zone .player-count-row{gap:clamp(3px,1vw,9px)}
+ .player-zone .player-count-row .player-symbol{font-size:clamp(29px,8vw,49px)}
+}
+@media(max-height:620px) and (orientation:landscape){
+ .player-zone .player-count-row{gap:clamp(4px,.7vw,12px)}
+ .player-zone .player-count-row .player-symbol{font-size:clamp(32px,7vh,50px)}
+}
 </style>
 </head>
 <body>
@@ -692,7 +704,7 @@ function createPlayers(){let deck=buildDeck();state.players=[];const names=[...$
  if(deck.length<state.cards)deck.push(...buildDeck());state.players.push({id:i,name:names[i].value.trim().slice(0,16)||playerLabel(i),color:COLORS[i],hand:deck.splice(0,state.cards),zone:null});}}
 function renderPlayers(){zones.replaceChildren();for(const p of state.players){const btn=document.createElement('button');btn.type='button';btn.className='player-zone';btn.dataset.seat=p.id;
  btn.style.setProperty('--accent',p.color.main);btn.style.setProperty('--light',p.color.light);
- btn.innerHTML=`<span class="seat-num">JUGADOR ${p.id+1}</span><span class="player-name"></span><span class="player-count"><strong class="card-total">0</strong><small class="card-unit">cartas</small></span><span class="player-symbol">🃏</span><span class="player-cue">MI TURNO</span>`;
+ btn.innerHTML=`<span class="seat-num">JUGADOR ${p.id+1}</span><span class="player-name"></span><span class="player-count-row"><span class="player-count"><strong class="card-total">0</strong><small class="card-unit">cartas</small></span><span class="player-symbol">🃏</span></span><span class="player-cue">MI TURNO</span>`;
  btn.querySelector('.player-name').textContent=p.name;
  btn.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();press(p.id);},{passive:false});
  btn.addEventListener('click',e=>{if(e.detail===0)press(p.id);});btn.addEventListener('contextmenu',e=>e.preventDefault());zones.appendChild(btn);p.zone=btn;}
