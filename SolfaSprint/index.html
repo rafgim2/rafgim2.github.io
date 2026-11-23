@@ -259,6 +259,44 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
 @media(max-height:620px) and (orientation:landscape){
  .player-zone .player-count-row .player-symbol{width:clamp(31px,6vh,49px);height:clamp(40px,8vh,64px)}
 }
+/* Distribución más aireada de la información de cada jugador. */
+.player-zone{
+ width:clamp(140px,25vw,350px);
+ gap:clamp(8px,1.25vh,15px);
+ padding:12px 14px;
+}
+.player-zone .player-name{
+ margin:12px 0 6px;
+}
+.player-zone .player-count-row{
+ gap:clamp(17px,1.8vw,27px);
+ margin:4px 0 8px;
+}
+.player-zone .player-count-row .player-count{
+ padding:5px 10px;
+}
+.player-zone .player-count-row .player-symbol{
+ margin-left:3px;
+}
+.player-zone .player-cue{
+ margin-top:5px;
+}
+/* Los espacios se reducen en pantallas pequeñas para que no se recorte nada. */
+@media(max-width:680px),(orientation:portrait){
+ .player-zone{width:47%;gap:4px;padding:5px 7px}
+ .player-zone .player-name{margin:7px 0 2px}
+ .player-zone .player-count-row{gap:clamp(7px,2vw,14px);margin:2px 0 4px}
+ .player-zone .player-count-row .player-count{padding:2px 5px}
+ .player-zone .player-count-row .player-symbol{margin-left:0}
+ .player-zone .player-cue{margin-top:2px}
+}
+@media(max-height:620px) and (orientation:landscape){
+ .player-zone{gap:4px;padding:5px 8px}
+ .player-zone .player-name{margin:3px 0 1px}
+ .player-zone .player-count-row{gap:clamp(9px,1.2vw,18px);margin:2px 0 3px}
+ .player-zone .player-count-row .player-count{padding:2px 7px}
+ .player-zone .player-cue{margin-top:2px}
+}
 </style>
 </head>
 <body>
