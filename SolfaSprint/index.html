@@ -233,6 +233,32 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
  .player-zone .player-count-row{gap:clamp(4px,.7vw,12px)}
  .player-zone .player-count-row .player-symbol{font-size:clamp(32px,7vh,50px)}
 }
+/* Mazo de reversos lisos, en capas y a la derecha del contador. */
+.player-zone .player-count-row .player-symbol{
+ position:relative;display:block;flex:0 0 auto;
+ width:clamp(43px,5.1vw,78px);height:clamp(57px,6.7vw,104px);
+ filter:drop-shadow(0 3px 3px #0006);
+ animation:none;
+}
+.player-zone .player-count-row .player-symbol::before,
+.player-zone .player-count-row .player-symbol::after,
+.player-zone .player-count-row .player-symbol .deck-card{
+ content:"";position:absolute;display:block;
+ left:8%;top:7%;width:79%;height:84%;
+ border-radius:clamp(4px,.65vw,9px);
+ border:clamp(2px,.22vw,3px) solid #be9752;
+ background:#f4d68d;box-shadow:0 2px 4px #0004;
+}
+.player-zone .player-count-row .player-symbol::before{transform:translate(-7px,4px) rotate(-8deg);background:#fff1c8;border-color:#d6b879}
+.player-zone .player-count-row .player-symbol::after{transform:translate(6px,2px) rotate(6deg);background:#ffe9b0;border-color:#d6b879}
+.player-zone .player-count-row .player-symbol .deck-card{z-index:1;transform:translate(0,0);background:#f4d68d;border-color:#d4ac58}
+.player-zone.empty .player-count-row .player-symbol{opacity:.35}
+@media(max-width:680px),(orientation:portrait){
+ .player-zone .player-count-row .player-symbol{width:clamp(33px,7vw,49px);height:clamp(42px,9vw,63px)}
+}
+@media(max-height:620px) and (orientation:landscape){
+ .player-zone .player-count-row .player-symbol{width:clamp(31px,6vh,49px);height:clamp(40px,8vh,64px)}
+}
 </style>
 </head>
 <body>
@@ -704,7 +730,7 @@ function createPlayers(){let deck=buildDeck();state.players=[];const names=[...$
  if(deck.length<state.cards)deck.push(...buildDeck());state.players.push({id:i,name:names[i].value.trim().slice(0,16)||playerLabel(i),color:COLORS[i],hand:deck.splice(0,state.cards),zone:null});}}
 function renderPlayers(){zones.replaceChildren();for(const p of state.players){const btn=document.createElement('button');btn.type='button';btn.className='player-zone';btn.dataset.seat=p.id;
  btn.style.setProperty('--accent',p.color.main);btn.style.setProperty('--light',p.color.light);
- btn.innerHTML=`<span class="seat-num">JUGADOR ${p.id+1}</span><span class="player-name"></span><span class="player-count-row"><span class="player-count"><strong class="card-total">0</strong><small class="card-unit">cartas</small></span><span class="player-symbol">🃏</span></span><span class="player-cue">MI TURNO</span>`;
+ btn.innerHTML=`<span class="seat-num">JUGADOR ${p.id+1}</span><span class="player-name"></span><span class="player-count-row"><span class="player-count"><strong class="card-total">0</strong><small class="card-unit">cartas</small></span><span class="player-symbol" aria-hidden="true"><span class="deck-card"></span></span></span><span class="player-cue">MI TURNO</span>`;
  btn.querySelector('.player-name').textContent=p.name;
  btn.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();press(p.id);},{passive:false});
  btn.addEventListener('click',e=>{if(e.detail===0)press(p.id);});btn.addEventListener('contextmenu',e=>e.preventDefault());zones.appendChild(btn);p.zone=btn;}
@@ -722,13 +748,13 @@ function refreshZones(){board.classList.toggle('auto-draw',state.autoDraw);board
  z.classList.toggle('is-turn',state.phase==='ready'&&state.turn===p.id);
  z.classList.remove('can-react');
  z.classList.toggle('has-reacted',state.phase==='reaction'&&state.responses.has(p.id));
- const symbol=z.querySelector('.player-symbol'),cue=z.querySelector('.player-cue');
- if(state.phase==='ready'&&state.turn===p.id){symbol.textContent=state.autoDraw?'♫':'🫵';cue.textContent=state.autoDraw?tx('♫ SALIDA AUTOMÁTICA','♫ 自動出牌'):tx('♫ ¡SACA TU CARTA!','♫ 請出牌！');}
- else if(state.phase==='reaction'){symbol.textContent=state.responses.has(p.id)?'✅':'🃏';cue.textContent=state.responses.has(p.id)?tx('TOQUE REGISTRADO','已記錄觸碰'):tx('ESPERA TU TURNO','等候輪次');}
- else if(state.phase==='result'){if(state.multiPenalty&&state.penaltyRecipients.includes(p.id)){symbol.textContent='📥';cue.textContent=tx('RECIBE +'+state.penaltyCards+' CARTAS','收下 +'+state.penaltyCards+' 張牌');}else if(p.id===state.penaltyId){symbol.textContent='📥';cue.textContent=tx('RECIBE +'+state.penaltyCards+' CARTAS','收下 +'+state.penaltyCards+' 張牌');}else if(p.id===state.fastestId){symbol.textContent='🥇';cue.textContent=tx('EL MÁS RÁPIDO','反應最快');}else{symbol.textContent='🃏';cue.textContent=tx('ESPERA TU TURNO','等候輪次');}}
- else if(state.phase==='dealing'){symbol.textContent='🃏';cue.textContent=tx('SALIENDO CARTA…','正在出牌…');}
- else if(state.phase==='won'){symbol.textContent=p.id===state.winnerId?'🏆':'🃏';cue.textContent=p.id===state.winnerId?tx('¡CAMPEÓN!','冠軍！'):tx('PARTIDA TERMINADA','遊戲已結束');}
- else{symbol.textContent='🃏';cue.textContent=tx('ESPERA TU TURNO','等候輪次');}}
+ const cue=z.querySelector('.player-cue');
+ if(state.phase==='ready'&&state.turn===p.id){cue.textContent=state.autoDraw?tx('♫ SALIDA AUTOMÁTICA','♫ 自動出牌'):tx('♫ ¡SACA TU CARTA!','♫ 請出牌！');}
+ else if(state.phase==='reaction'){cue.textContent=state.responses.has(p.id)?tx('TOQUE REGISTRADO','已記錄觸碰'):tx('ESPERA TU TURNO','等候輪次');}
+ else if(state.phase==='result'){if(state.multiPenalty&&state.penaltyRecipients.includes(p.id)){cue.textContent=tx('RECIBE +'+state.penaltyCards+' CARTAS','收下 +'+state.penaltyCards+' 張牌');}else if(p.id===state.penaltyId){cue.textContent=tx('RECIBE +'+state.penaltyCards+' CARTAS','收下 +'+state.penaltyCards+' 張牌');}else if(p.id===state.fastestId){cue.textContent=tx('EL MÁS RÁPIDO','反應最快');}else{cue.textContent=tx('ESPERA TU TURNO','等候輪次');}}
+ else if(state.phase==='dealing'){cue.textContent=tx('SALIENDO CARTA…','正在出牌…');}
+ else if(state.phase==='won'){cue.textContent=p.id===state.winnerId?tx('¡CAMPEÓN!','冠軍！'):tx('PARTIDA TERMINADA','遊戲已結束');}
+ else{cue.textContent=tx('ESPERA TU TURNO','等候輪次');}}
 }
 function scheduleAutoTurn(){
  clearTimeout(state.autoTimer);clearInterval(state.autoTick);state.autoTimer=0;state.autoTick=0;
