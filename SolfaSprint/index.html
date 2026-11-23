@@ -282,7 +282,7 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
  <div class="rules">
   <p><b>1.</b> En modo manual, el jugador de turno toca su zona para lanzar una carta. En modo automático, la siguiente carta sale sola siguiendo las pausas habituales del juego. En ambos modos, todos deben tocar su zona cuando el sonido coincida con la carta.</p>
   <p><b>2.</b> En el modo sencillo aparecen <b>DO, RE, MI, FA y SOL</b> (en notación americana: <b>C, D, E, F y G</b>). En el difícil eliges <b>exactamente cinco sonidos distintos</b> entre DO4 y DO5. Puedes usar nombres en español o americano y, si quieres, mostrar <b>solo el pentagrama</b> sin el nombre. El nombre del sonido que suena siempre permanece oculto.</p>
-  <p><b>3.</b> Si <b>el sonido coincide con la carta</b>, todos tocan rápidamente su propia zona. <b>Cada jugador que no toque a tiempo recibe una copia de todo el montón</b>. Si todos tocan, el último recoge el montón. <b>Si hay solo dos jugadores, basta con que pulse el primero</b>: el otro recoge las cartas automáticamente. Si nadie toca, todos reciben la misma cantidad de cartas que haya en el montón. Si <b>no coinciden</b>, no hay que tocar: quien se precipite recoge las cartas.</p>
+  <p><b>3.</b> Si <b>el sonido coincide con la carta</b>, todos tocan rápidamente su propia zona. <b>Cada jugador que no toque a tiempo recibe una copia de todo el montón</b>. Si todos tocan, el último recoge el montón. <b>Si hay solo dos jugadores, basta con que pulse el primero</b>: el otro recoge las cartas automáticamente. Si nadie toca, todos reciben la misma cantidad de cartas que haya en el montón. Si <b>no coinciden</b>, no hay que tocar: quien se precipite recoge las cartas. <b>El tiempo es el mismo en ambos casos: 1,75 segundos</b>, tanto si las notas coinciden como si no.</p>
   <p><b>4.</b> Usa <b>«♫ Repetir»</b> para oír otra vez el sonido. Los botones de práctica reflejan las notas elegidas y el sistema de nombres. <b>DO♯ y RE♭</b> (en americano <b>C♯ y D♭</b>) tienen la misma altura: la coincidencia se decide por el sonido. No hay música de fondo que interfiera.</p>
   <p><b>5.</b> Tras recoger cartas, sigue el siguiente jugador. <b>Gana automáticamente</b> el primero que se queda sin cartas. Hay partidas normales y rápidas de 2 a 8 jugadores. También se puede tocar usando las teclas 1–8.</p>
   <p>Do grave = DO4 (261,6 Hz), do agudo = DO5 (523,3 Hz): hay 12 intervalos de semitono entre ambos y 13 alturas contando los dos extremos. Para identificar alturas absolutas, prueba primero los botones de práctica.</p>
@@ -528,7 +528,7 @@ const SETTINGS_ZH=[
 const RULES_ZH=[
  '<b>1.</b> 手動模式由輪到的玩家點擊自己的區域出牌。自動模式會依照原本的遊戲節奏自動出牌。不論哪種模式，只要聲音和卡牌音高一致，大家都要立刻點自己的區域。',
  '<b>2.</b> 簡單模式使用 <b>DO、RE、MI、FA、SOL</b>（英文字母是 <b>C、D、E、F、G</b>）。困難模式可從 DO4 到 DO5 選擇<b>剛好 5 個不同的音高</b>，包含升降記號。可以選擇唱名或英文字母，也能設定<b>只顯示五線譜</b>，不顯示音名。遊戲不會告訴你聽到的是哪個音。',
- '<b>3.</b> 如果<b>聲音和卡牌的音高一致</b>，所有玩家要立刻點自己的區域；<b>每位沒有及時按下的玩家都要收下完整牌堆的相同數量</b>。如果所有人都按了，最後按下的玩家收牌。<b>如果只有兩位玩家，第一個按下的人就贏得本回合</b>，另一位直接收牌。如果所有人都沒有按下，<b>所有玩家都會收到與牌堆相同數量的卡牌</b>。音高不同時不能亂按，按錯的人要收牌。',
+ '<b>3.</b> 如果<b>聲音和卡牌的音高一致</b>，所有玩家要立刻點自己的區域；<b>每位沒有及時按下的玩家都要收下完整牌堆的相同數量</b>。如果所有人都按了，最後按下的玩家收牌。<b>如果只有兩位玩家，第一個按下的人就贏得本回合</b>，另一位直接收牌。如果所有人都沒有按下，<b>所有玩家都會收到與牌堆相同數量的卡牌</b>。音高不同時不能亂按，按錯的人要收牌。<b>不論音高是否相符，反應時間都一樣：1.75 秒。</b>',
  '<b>4.</b> 點<b>「♫ 重播」</b>可以再聽一次。試聽按鈕會顯示所選的音符名稱。例如 <b>DO♯ 和 RE♭</b>（英文字母 <b>C♯ 和 D♭</b>）音高相同，判斷是否相符要以聲音為準。遊戲沒有干擾聽音的背景音樂。',
  '<b>5.</b> 收牌後，換下一位玩家出牌。<b>誰先把手牌出完就自動獲勝</b>。支援 2–8 位玩家、一般與快速模式；也可以按鍵盤上的 1–8 進行操作。',
  '低音 DO4（261.6 Hz）到高音 DO5（523.3 Hz），兩端共有 13 個不同音高。若覺得辨認單音較難，可先按試聽鍵練習。'
