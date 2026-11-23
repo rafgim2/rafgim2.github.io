@@ -326,6 +326,80 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
   padding-bottom:4px;
  }
 }
+
+/* Centro protagonista y carta ampliada - 2026-11-23 */
+/* Solo se agranda el escenario central; los paneles de jugadores no cambian. */
+.stage{
+ width:48%;
+ max-width:750px;
+ gap:clamp(5px,1vh,11px);
+}
+.stage .card-stack{
+ width:clamp(225px,22vw,335px);
+ height:clamp(295px,43vh,415px);
+ margin:5px auto;
+}
+.stage .picture-card .emoji{
+ max-width:290px;
+}
+.stage .picture-card .emoji svg{
+ max-height:215px;
+}
+.stage .picture-card.note-only .emoji{
+ max-width:295px;
+}
+.stage .picture-card.note-only .emoji svg{
+ max-height:245px;
+}
+.stage .picture-card .card-word{
+ font-size:clamp(39px,4vw,59px);
+ margin-top:12px;
+}
+.stage .picture-card.cover .card-word{
+ font-size:clamp(17px,1.8vw,27px);
+}
+.stage .turn-badge .word{
+ font-size:clamp(23px,2.5vw,37px);
+}
+.stage .pile-count{font-size:clamp(13px,1.25vw,18px)}
+.stage .status{font-size:clamp(15px,1.55vw,22px)}
+.stage .helptext{font-size:clamp(11px,1.15vw,16px)}
+/* En vertical el centro crece sin invadir las zonas táctiles. */
+@media(max-width:680px),(orientation:portrait){
+ .stage{width:98%;gap:4px;padding:4px 6px}
+ .stage .card-stack{
+  width:clamp(140px,37vw,240px);
+  height:clamp(185px,25vh,315px);
+  margin:3px auto;
+ }
+ .stage .picture-card .emoji{max-width:205px}
+ .stage .picture-card .emoji svg{max-height:150px}
+ .stage .picture-card.note-only .emoji{max-width:210px}
+ .stage .picture-card.note-only .emoji svg{max-height:175px}
+ .stage .picture-card .card-word{font-size:clamp(27px,5vw,43px);margin-top:5px}
+ .stage .picture-card.cover .card-word{font-size:clamp(13px,2.8vw,18px)}
+ .stage .turn-badge .word{font-size:clamp(18px,4.7vw,30px)}
+ .stage .pile-count{font-size:clamp(10px,2.5vw,15px)}
+ .stage .status{font-size:clamp(12px,2.9vw,17px)}
+ .stage .helptext{font-size:clamp(10px,2.2vw,13px)}
+}
+/* Paisaje con poca altura: se prioriza la carta sin tapar los textos. */
+@media(max-height:620px) and (orientation:landscape){
+ .stage{width:48%;gap:3px}
+ .stage .card-stack{
+  width:clamp(135px,21vw,260px);
+  height:clamp(150px,42vh,285px);
+  margin:2px auto;
+ }
+ .stage .picture-card .emoji{max-width:210px}
+ .stage .picture-card .emoji svg{max-height:160px}
+ .stage .picture-card.note-only .emoji svg{max-height:175px}
+ .stage .picture-card .card-word{font-size:clamp(25px,3vw,43px);margin-top:5px}
+ .stage .turn-badge .word{font-size:clamp(18px,2.2vw,27px)}
+ .stage .pile-count{font-size:12px}
+ .stage .status{font-size:clamp(12px,1.4vw,18px)}
+ .stage .helptext{font-size:clamp(10px,1vw,13px)}
+}
 </style>
 </head>
 <body>
