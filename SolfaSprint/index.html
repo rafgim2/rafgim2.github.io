@@ -282,7 +282,7 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
  <div class="rules">
   <p><b>1.</b> En modo manual, el jugador de turno toca su zona para lanzar una carta. En modo automático, la siguiente carta sale sola siguiendo las pausas habituales del juego. En ambos modos, todos deben tocar su zona cuando el sonido coincida con la carta.</p>
   <p><b>2.</b> En el modo sencillo aparecen <b>DO, RE, MI, FA y SOL</b> (en notación americana: <b>C, D, E, F y G</b>). En el difícil eliges <b>exactamente cinco sonidos distintos</b> entre DO4 y DO5. Puedes usar nombres en español o americano y, si quieres, mostrar <b>solo el pentagrama</b> sin el nombre. El nombre del sonido que suena siempre permanece oculto.</p>
-  <p><b>3.</b> Si <b>el sonido coincide con la carta</b>, todos tocan rápidamente su propia zona. El último en tocar —o quien no toque— recoge el montón. <b>Si hay solo dos jugadores, basta con que pulse el primero</b>: el otro recoge las cartas automáticamente. Si <b>nadie pulsa a tiempo en modo automático</b> cuando coinciden, <b>todos reciben tantas cartas como haya en el montón</b>. Si <b>no coinciden</b>, no hay que tocar: quien se precipite recoge las cartas.</p>
+  <p><b>3.</b> Si <b>el sonido coincide con la carta</b>, todos tocan rápidamente su propia zona. <b>Cada jugador que no toque a tiempo recibe una copia de todo el montón</b>. Si todos tocan, el último recoge el montón. <b>Si hay solo dos jugadores, basta con que pulse el primero</b>: el otro recoge las cartas automáticamente. Si nadie toca, todos reciben la misma cantidad de cartas que haya en el montón. Si <b>no coinciden</b>, no hay que tocar: quien se precipite recoge las cartas.</p>
   <p><b>4.</b> Usa <b>«♫ Repetir»</b> para oír otra vez el sonido. Los botones de práctica reflejan las notas elegidas y el sistema de nombres. <b>DO♯ y RE♭</b> (en americano <b>C♯ y D♭</b>) tienen la misma altura: la coincidencia se decide por el sonido. No hay música de fondo que interfiera.</p>
   <p><b>5.</b> Tras recoger cartas, sigue el siguiente jugador. <b>Gana automáticamente</b> el primero que se queda sin cartas. Hay partidas normales y rápidas de 2 a 8 jugadores. También se puede tocar usando las teclas 1–8.</p>
   <p>Do grave = DO4 (261,6 Hz), do agudo = DO5 (523,3 Hz): hay 12 intervalos de semitono entre ambos y 13 alturas contando los dos extremos. Para identificar alturas absolutas, prueba primero los botones de práctica.</p>
@@ -348,7 +348,7 @@ const RACE_MS=7000, RESULT_MS=1100, NON_MATCH_MS=1750, DEAL_MS=690;
 const $=id=>document.getElementById(id);
 const board=$('board'),zones=$('playerZones'),picture=$('pictureCard');
 const state={count:2,cards:6,autoDraw:true,autoDelay:0,autoTimer:0,autoTick:0,players:[],pile:[],turn:0,wordIndex:0,phase:'setup',currentCard:null,currentWord:'',dealer:0,
- responses:new Map(),roundStart:0,roundTimeout:0,raf:0,resultTimer:0,waitInterval:0,extraTimers:[],mode:'easy',lang:'es',notation:'latin',showCardName:true,selectedNotes:EASY_IDS.slice(),notePool:[],special:false,voice:false,sound:false,music:false,animationId:0,penaltyId:-1,fastestId:-1,penaltyCards:0,multiPenalty:false,winnerId:-1};
+ responses:new Map(),roundStart:0,roundTimeout:0,raf:0,resultTimer:0,waitInterval:0,extraTimers:[],mode:'easy',lang:'es',notation:'latin',showCardName:true,selectedNotes:EASY_IDS.slice(),notePool:[],special:false,voice:false,sound:false,music:false,animationId:0,penaltyId:-1,fastestId:-1,penaltyCards:0,multiPenalty:false,penaltyRecipients:[],winnerId:-1};
 let audioCtx=null,toastTimer=0;
 const tx=(es,zh)=>state.lang==='zh'?zh:es;
 const playerLabel=i=>tx('Jugador '+(i+1),'玩家'+(i+1));
@@ -528,7 +528,7 @@ const SETTINGS_ZH=[
 const RULES_ZH=[
  '<b>1.</b> 手動模式由輪到的玩家點擊自己的區域出牌。自動模式會依照原本的遊戲節奏自動出牌。不論哪種模式，只要聲音和卡牌音高一致，大家都要立刻點自己的區域。',
  '<b>2.</b> 簡單模式使用 <b>DO、RE、MI、FA、SOL</b>（英文字母是 <b>C、D、E、F、G</b>）。困難模式可從 DO4 到 DO5 選擇<b>剛好 5 個不同的音高</b>，包含升降記號。可以選擇唱名或英文字母，也能設定<b>只顯示五線譜</b>，不顯示音名。遊戲不會告訴你聽到的是哪個音。',
- '<b>3.</b> 如果<b>聲音和卡牌的音高一致</b>，所有玩家要立刻點自己的區域；最後按下或沒按的人要收回整疊牌。<b>如果只有兩位玩家，第一個按下的人就贏得本回合</b>，另一位直接收牌。自動模式下音高相符卻沒有人及時按下時，<b>所有玩家都會收到與牌堆相同數量的卡牌</b>。音高不同時不能亂按，按錯的人要收牌。',
+ '<b>3.</b> 如果<b>聲音和卡牌的音高一致</b>，所有玩家要立刻點自己的區域；<b>每位沒有及時按下的玩家都要收下完整牌堆的相同數量</b>。如果所有人都按了，最後按下的玩家收牌。<b>如果只有兩位玩家，第一個按下的人就贏得本回合</b>，另一位直接收牌。如果所有人都沒有按下，<b>所有玩家都會收到與牌堆相同數量的卡牌</b>。音高不同時不能亂按，按錯的人要收牌。',
  '<b>4.</b> 點<b>「♫ 重播」</b>可以再聽一次。試聽按鈕會顯示所選的音符名稱。例如 <b>DO♯ 和 RE♭</b>（英文字母 <b>C♯ 和 D♭</b>）音高相同，判斷是否相符要以聲音為準。遊戲沒有干擾聽音的背景音樂。',
  '<b>5.</b> 收牌後，換下一位玩家出牌。<b>誰先把手牌出完就自動獲勝</b>。支援 2–8 位玩家、一般與快速模式；也可以按鍵盤上的 1–8 進行操作。',
  '低音 DO4（261.6 Hz）到高音 DO5（523.3 Hz），兩端共有 13 個不同音高。若覺得辨認單音較難，可先按試聽鍵練習。'
@@ -615,15 +615,17 @@ function syncLiveLanguage(){
   const p=state.players[state.penaltyId],fast=state.players[state.fastestId];
   $('turnCaption').textContent=tx('CARTAS RECOGIDAS','收回卡牌');
   if(state.multiPenalty){
-   $('turnCaption').textContent=tx('CARTAS PARA TODOS','大家都收牌');
-   $('status').textContent=tx('📥 Nadie pulsó: todos reciben '+cardCount(state.penaltyCards),'📥 沒有人按下：每人收下 '+state.penaltyCards+' 張牌');
-   $('helptext').textContent=tx('Cada jugador recibe las cartas que había en el montón.','每位玩家都收到和原本牌堆相同的卡牌數量。');
-   $('footerInfo').textContent=tx('Nadie reaccionó. Todos reciben '+cardCount(state.penaltyCards)+'.','沒有人反應。每位玩家收到 '+state.penaltyCards+' 張牌。');
+   const all=state.penaltyRecipients.length===state.players.length;
+   const names=state.penaltyRecipients.map(id=>state.players[id].name).join(', ');
+   $('turnCaption').textContent=tx('CARTAS POR NO RESPONDER','未反應收牌');
+   $('status').textContent=all?tx('📥 Nadie pulsó: todos reciben '+cardCount(state.penaltyCards),'📥 沒有人按下：全部各收 '+state.penaltyCards+' 張牌'):tx('📥 '+names+' reciben '+cardCount(state.penaltyCards)+' cada uno','📥 '+names+' 每人收下 '+state.penaltyCards+' 張牌');
+   $('helptext').textContent=tx('Quien no respondió recibe el montón completo. Quien respondió se libra.','未按下的人各收到完整牌堆；有按的人不收牌。');
+   $('footerInfo').textContent=all?tx('Todos reciben '+cardCount(state.penaltyCards)+'.','大家各收 '+state.penaltyCards+' 張牌。'):tx('Penalizados: '+names+' · +'+state.penaltyCards+' cartas cada uno.','受罰：'+names+'，各加 '+state.penaltyCards+' 張牌。');
   }else if(p){
    $('status').textContent=tx('📥 '+p.name+' recoge '+cardCount(state.penaltyCards),'📥 '+p.name+' 收下 '+state.penaltyCards+' 張牌');
    $('footerInfo').textContent=tx(p.name+' recibe '+cardCount(state.penaltyCards)+'. Saca la siguiente carta el próximo jugador.',p.name+' 收下 '+state.penaltyCards+' 張牌。下一位玩家請出牌。');
   }
-  $('helptext').textContent=fast?tx('🥇 '+fast.name+' fue el más rápido.','🥇 '+fast.name+' 反應最快！'):tx('Toque equivocado: recoge el montón.','按錯了：把牌堆收回。');
+  if(!state.multiPenalty)$('helptext').textContent=fast?tx('🥇 '+fast.name+' fue el más rápido.','🥇 '+fast.name+' 反應最快！'):tx('Toque equivocado: recoge el montón.','按錯了：把牌堆收回。');
  }else if(state.phase==='won'){
   const p=state.players[state.winnerId];
   if(p){
@@ -691,7 +693,7 @@ function refreshZones(){board.classList.toggle('auto-draw',state.autoDraw);board
  const symbol=z.querySelector('.player-symbol'),cue=z.querySelector('.player-cue');
  if(state.phase==='ready'&&state.turn===p.id){symbol.textContent=state.autoDraw?'♫':'🫵';cue.textContent=state.autoDraw?tx('♫ SALIDA AUTOMÁTICA','♫ 自動出牌'):tx('♫ ¡SACA TU CARTA!','♫ 請出牌！');}
  else if(state.phase==='reaction'){symbol.textContent=state.responses.has(p.id)?'✅':'🃏';cue.textContent=state.responses.has(p.id)?tx('TOQUE REGISTRADO','已記錄觸碰'):tx('ESPERA TU TURNO','等候輪次');}
- else if(state.phase==='result'){if(state.multiPenalty){symbol.textContent='📥';cue.textContent=tx('TODOS +'+state.penaltyCards+' CARTAS','所有人 +'+state.penaltyCards+' 張牌');}else if(p.id===state.penaltyId){symbol.textContent='📥';cue.textContent=tx('RECIBE +'+state.penaltyCards+' CARTAS','收下 +'+state.penaltyCards+' 張牌');}else if(p.id===state.fastestId){symbol.textContent='🥇';cue.textContent=tx('EL MÁS RÁPIDO','反應最快');}else{symbol.textContent='🃏';cue.textContent=tx('ESPERA TU TURNO','等候輪次');}}
+ else if(state.phase==='result'){if(state.multiPenalty&&state.penaltyRecipients.includes(p.id)){symbol.textContent='📥';cue.textContent=tx('RECIBE +'+state.penaltyCards+' CARTAS','收下 +'+state.penaltyCards+' 張牌');}else if(p.id===state.penaltyId){symbol.textContent='📥';cue.textContent=tx('RECIBE +'+state.penaltyCards+' CARTAS','收下 +'+state.penaltyCards+' 張牌');}else if(p.id===state.fastestId){symbol.textContent='🥇';cue.textContent=tx('EL MÁS RÁPIDO','反應最快');}else{symbol.textContent='🃏';cue.textContent=tx('ESPERA TU TURNO','等候輪次');}}
  else if(state.phase==='dealing'){symbol.textContent='🃏';cue.textContent=tx('SALIENDO CARTA…','正在出牌…');}
  else if(state.phase==='won'){symbol.textContent=p.id===state.winnerId?'🏆':'🃏';cue.textContent=p.id===state.winnerId?tx('¡CAMPEÓN!','冠軍！'):tx('PARTIDA TERMINADA','遊戲已結束');}
  else{symbol.textContent='🃏';cue.textContent=tx('ESPERA TU TURNO','等候輪次');}}
@@ -709,7 +711,7 @@ function scheduleAutoTurn(){
 }
 function showNextTurn(){if(state.phase==='won')return;
  const empty=state.players.find(p=>p.hand.length===0);if(empty){declareWinner(empty.id);return;}
- const next=nextActive(state.turn);if(next<0)return;state.turn=next;state.phase='ready';state.penaltyId=-1;state.fastestId=-1;state.multiPenalty=false;board.style.setProperty('--turn-color',state.players[next].color.main);$('turnCaption').textContent='♫ TURNO DE';$('spokenWord').textContent=state.players[next].name.toUpperCase();$('status').textContent=`👆 ¡${state.players[next].name}, toca tu zona!`;$('status').className='status';$('helptext').textContent='Los demás esperan. Solo toca el jugador señalado.';$('footerInfo').textContent=`Turno de ${state.players[next].name}: pulsa su zona para lanzar la carta.`;refreshZones();syncLiveLanguage();scheduleAutoTurn();}
+ const next=nextActive(state.turn);if(next<0)return;state.turn=next;state.phase='ready';state.penaltyId=-1;state.fastestId=-1;state.multiPenalty=false;state.penaltyRecipients=[];board.style.setProperty('--turn-color',state.players[next].color.main);$('turnCaption').textContent='♫ TURNO DE';$('spokenWord').textContent=state.players[next].name.toUpperCase();$('status').textContent=`👆 ¡${state.players[next].name}, toca tu zona!`;$('status').className='status';$('helptext').textContent='Los demás esperan. Solo toca el jugador señalado.';$('footerInfo').textContent=`Turno de ${state.players[next].name}: pulsa su zona para lanzar la carta.`;refreshZones();syncLiveLanguage();scheduleAutoTurn();}
 // Partitura vectorial sin clave dibujada: referencia de clave de SOL.
 // Líneas: y=22 FA5 · 46 RE5 · 70 SI4 · 94 SOL4 · 118 MI4.
 // Cada espacio o línea contigua cambia 12 unidades de y (un grado diatónico).
@@ -804,38 +806,34 @@ function flipFrom(id){resetClocks();const p=state.players[id];if(!p.hand.length)
 function updateProgress(){if(state.phase!=='reaction')return;const remaining=Math.max(0,1-(performance.now()-state.roundStart)/RACE_MS);$('progressFill').style.width=`${remaining*100}%`; $('progressFill').style.background=remaining<.33?'#e45d68':'#f6ae42';state.raf=requestAnimationFrame(updateProgress);}
 function chooseNonResponder(missed){const dealer=missed.find(p=>p.id===state.dealer);if(dealer)return dealer;for(let step=1;step<=state.players.length;step++){const id=(state.dealer+step)%state.players.length;const p=missed.find(x=>x.id===id);if(p)return p;}return missed[0];}
 function finishRace(){if(state.phase!=='reaction')return;clearTimeout(state.roundTimeout);cancelAnimationFrame(state.raf);$('progress').style.display='none';
- const responders=state.players.filter(p=>state.responses.has(p.id)).sort((a,b)=>state.responses.get(a.id)-state.responses.get(b.id));const first=responders[0];
- if(state.autoDraw&&responders.length===0){penalizeEveryone();return;}
- const missed=state.players.filter(p=>!state.responses.has(p.id));let loser;
- if(missed.length)loser=chooseNonResponder(missed);else loser=responders[responders.length-1];
- let detail=missed.length?`${missed.length} jugador${missed.length===1?' no pulsó':'es no pulsaron'} a tiempo.`:`${loser.name} fue el último en pulsar.`;
- applyPenalty(loser.id,detail,first?first.id:null);
+ const responders=state.players.filter(p=>state.responses.has(p.id)).sort((a,b)=>state.responses.get(a.id)-state.responses.get(b.id));
+ const missed=state.players.filter(p=>!state.responses.has(p.id));
+ // Todos los que no han reaccionado reciben una copia completa del montón.
+ if(missed.length){penalizeMissing(missed.map(p=>p.id),responders.length?responders[0].id:-1);return;}
+ // Si todos reaccionan, el último sigue recogiendo el montón.
+ const loser=responders[responders.length-1];
+ applyPenalty(loser.id,loser.name+' fue el último en pulsar.',responders[0]?.id);
 }
-function penalizeEveryone(){
- if(state.phase!=='reaction'||!state.pile.length)return;
+function penalizeMissing(ids,fastestId=-1){
+ if(state.phase!=='reaction'||!state.pile.length||!ids.length)return;
  const cards=state.pile.slice(),n=cards.length;
  resetClocks();
- // Se duplica el contenido del montón para que TODOS reciban la misma cantidad.
- for(const p of state.players)p.hand.push(...cards);
- state.pile=[];state.wordIndex=0;
- state.phase='result';state.multiPenalty=true;state.penaltyId=-1;state.penaltyCards=n;state.fastestId=-1;
- // Conserva el siguiente turno que ya estaba previsto al sacar la carta.
+ for(const id of ids)state.players[id].hand.push(...cards);
+ state.pile=[];state.wordIndex=0;state.phase='result';
+ state.multiPenalty=true;state.penaltyRecipients=ids.slice();
+ state.penaltyId=-1;state.penaltyCards=n;state.fastestId=fastestId;
  pileText();refreshZones();
- $('turnCaption').textContent=tx('CARTAS PARA TODOS','大家都收牌');
- $('status').textContent=tx('📥 Nadie pulsó: todos reciben '+cardCount(n),'📥 沒有人按下：每人收下 '+n+' 張牌');
+ syncLiveLanguage();
  $('status').className='status hot';
- $('helptext').textContent=tx('Cada jugador recibe la misma cantidad que había en el montón.','每位玩家都收到和牌堆原本數量相同的卡牌。');
- $('footerInfo').textContent=tx('Nadie reaccionó a tiempo. Todos reciben '+cardCount(n)+'.','沒有人及時反應。每位玩家收到 '+n+' 張牌。');
  tone(300,.20,'triangle',.06);
- for(const p of state.players)animateCollect(p.id,n);
- // Las animaciones duran 720 ms; la pausa habitual de resultado no se modifica.
+ for(const id of ids)animateCollect(id,n);
  state.resultTimer=setTimeout(()=>{if(state.phase==='result')showNextTurn();},RESULT_MS);
 }
 function applyPenalty(id,reason,fastestId){
  if(state.phase==='won'||state.phase==='result')return;
  const p=state.players[id],n=state.pile.length;
  resetClocks();p.hand.push(...state.pile);state.pile=[];state.wordIndex=0;state.turn=(id+1)%state.players.length;
- state.phase='result';state.multiPenalty=false;state.penaltyId=id;state.penaltyCards=n;
+ state.phase='result';state.multiPenalty=false;state.penaltyRecipients=[id];state.penaltyId=id;state.penaltyCards=n;
  state.fastestId=Number.isInteger(fastestId)?fastestId:-1;
  pileText();
  // Sin cartel central: solo se señala al jugador que recoge y vuelan las cartas.
@@ -874,7 +872,7 @@ function declareWinner(id){if(state.phase==='won')return;
  $('winText').textContent='¡Buen oído y cero cartas! La partida ha terminado.';
  refreshZones();syncLiveLanguage();makeConfetti();overlay('winOverlay',true);playVictoryFanfare();
 }
-function initGame(){state.notePool=getPool();if(state.mode==='hard'&&new Set(state.notePool.map(n=>n.midi)).size!==MAX_SOUNDS){toast(tx('Selecciona exactamente 5 sonidos.','請選擇剛好 5 個不同音高。'),2200);return;}resetClocks();stopVictory();++state.animationId;state.special=false;state.voice=false;state.music=false;musicStop();createPlayers();state.pile=[];state.turn=0;state.wordIndex=0;state.multiPenalty=false;state.phase='ready';state.currentCard=null;state.winnerId=-1;
+function initGame(){state.notePool=getPool();if(state.mode==='hard'&&new Set(state.notePool.map(n=>n.midi)).size!==MAX_SOUNDS){toast(tx('Selecciona exactamente 5 sonidos.','請選擇剛好 5 個不同音高。'),2200);return;}resetClocks();stopVictory();++state.animationId;state.special=false;state.voice=false;state.music=false;musicStop();createPlayers();state.pile=[];state.turn=0;state.wordIndex=0;state.multiPenalty=false;state.penaltyRecipients=[];state.phase='ready';state.currentCard=null;state.winnerId=-1;
  picture.className='picture-card cover';picture.removeAttribute('data-type');$('cardEmoji').textContent='♫';$('cardLabel').textContent=tx('¿QUÉ NOTA ES?','這是什麼音？');pileText();overlay('setupOverlay',false);overlay('winOverlay',false);
  renderPlayers();showNextTurn();$('modeInfo').textContent=modeText();initAudio();}
 function newGameSetup(){resetClocks();stopVictory();++state.animationId;musicStop();state.phase='setup';overlay('winOverlay',false);overlay('setupOverlay',true);syncLiveLanguage();}
