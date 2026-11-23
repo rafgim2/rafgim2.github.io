@@ -400,6 +400,45 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
  .stage .status{font-size:clamp(12px,1.4vw,18px)}
  .stage .helptext{font-size:clamp(10px,1vw,13px)}
 }
+
+/* Victorias de cada jugador visibles durante todas las revancha. */
+.player-zone .player-wins{
+ position:absolute;left:11px;top:9px;z-index:3;
+ display:inline-flex;align-items:center;justify-content:center;
+ min-width:47px;padding:4px 8px;border:1px solid #f4cf78a0;
+ border-radius:999px;background:#1b2845eb;color:#ffdd85;
+ font-size:clamp(11px,1vw,15px);font-weight:1000;
+ box-shadow:0 2px 6px #0005;pointer-events:none;
+}
+@media(max-width:680px),(orientation:portrait){
+ .player-zone .player-wins{top:auto;bottom:5px;left:5px;padding:2px 5px;min-width:0;font-size:10px}
+}
+@media(max-height:620px) and (orientation:landscape){
+ .player-zone .player-wins{top:5px;left:5px;padding:2px 5px;font-size:11px}
+}
+/* Marcador de victorias de la sesión en la pantalla final. */
+.win-scoreboard{
+ margin:12px auto 14px;max-width:500px;width:100%;
+ border:1px solid #8ba6e288;border-radius:13px;padding:10px;
+ background:#112343e8;color:#eff8ff;
+}
+.win-scoreboard .wins-title{
+ font-size:clamp(12px,1.3vw,16px);font-weight:1000;
+ color:#9ef6e5;text-align:center;margin-bottom:8px;
+}
+.win-scoreboard .wins-list{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:6px;max-height:23vh;overflow-y:auto;
+}
+.win-scoreboard .wins-item{
+ display:flex;align-items:center;justify-content:space-between;gap:5px;
+ min-width:0;padding:7px 9px;border-radius:9px;background:#24375a;
+ font-size:clamp(12px,1.05vw,16px);font-weight:800;
+}
+.win-scoreboard .wins-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.win-scoreboard .wins-item strong{color:#ffe18c;flex:none;font-size:1.15em}
+.win-scoreboard .wins-item.wins-current{outline:2px solid #fbd77c;background:#3c4263}
+@media(max-width:680px){.win-scoreboard{padding:7px}.win-scoreboard .wins-item{padding:5px;font-size:12px}}
 </style>
 </head>
 <body>
@@ -491,7 +530,10 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
 <div class="overlay winner-overlay" id="winOverlay" role="dialog" aria-modal="true" aria-label="Fin de la partida" hidden>
  <div class="win-confetti" id="winConfetti" aria-hidden="true"></div>
  <div class="modal winner-modal"><div class="win-subtitle">★ FIN DE PARTIDA ★</div><div class="winner-icon" aria-hidden="true">🏆</div><h2 id="winTitle">¡TENEMOS GANADOR!</h2><div class="win-zero">🃏 0 CARTAS</div><p class="lead" id="winText">¡Enhorabuena!</p>
- <button class="primary" type="button" id="playAgainBtn">♫ JUGAR OTRA PARTIDA</button><button class="secondary" type="button" id="winCloseBtn">Ver tablero final</button></div>
+ <div class="win-scoreboard" id="winScoreboard" aria-live="polite"></div>
+ <button class="primary" type="button" id="playAgainBtn">↻ REVANCHA · MISMOS JUGADORES</button>
+ <button class="secondary" type="button" id="newPlayersBtn">👥 PARTIDA NUEVA · OTROS JUGADORES</button>
+ <button class="secondary" type="button" id="winCloseBtn">Ver tablero final</button></div>
 </div>
 <div class="toast" id="toast" role="status"></div>
 <script>
@@ -547,7 +589,7 @@ const RACE_MS=1750, RESULT_MS=1100, NON_MATCH_MS=1750, DEAL_MS=690;
 const $=id=>document.getElementById(id);
 const board=$('board'),zones=$('playerZones'),picture=$('pictureCard');
 const state={count:2,cards:6,autoDraw:true,autoDelay:0,autoTimer:0,autoTick:0,players:[],pile:[],turn:0,wordIndex:0,phase:'setup',currentCard:null,currentWord:'',dealer:0,
- responses:new Map(),roundStart:0,roundTimeout:0,raf:0,resultTimer:0,waitInterval:0,extraTimers:[],mode:'easy',lang:'es',notation:'latin',showCardName:true,selectedNotes:EASY_IDS.slice(),notePool:[],special:false,voice:false,sound:false,music:false,animationId:0,penaltyId:-1,fastestId:-1,penaltyCards:0,multiPenalty:false,penaltyRecipients:[],winnerId:-1};
+ responses:new Map(),roundStart:0,roundTimeout:0,raf:0,resultTimer:0,waitInterval:0,extraTimers:[],mode:'easy',lang:'es',notation:'latin',showCardName:true,selectedNotes:EASY_IDS.slice(),notePool:[],special:false,voice:false,sound:false,music:false,animationId:0,penaltyId:-1,fastestId:-1,penaltyCards:0,multiPenalty:false,penaltyRecipients:[],winnerId:-1,roundsWon:0};
 let audioCtx=null,toastTimer=0;
 const tx=(es,zh)=>state.lang==='zh'?zh:es;
 const playerLabel=i=>tx('Jugador '+(i+1),'玩家'+(i+1));
@@ -718,7 +760,7 @@ const STATIC_ZH=[
  ['#rulesOverlay h2','📖 遊戲規則'],['#closeRulesBtn','知道了 ✓'],
  ['#winOverlay .win-subtitle','★ 遊戲結束 ★'],
  ['#winOverlay .win-zero','🃏 0 張牌'],
- ['#playAgainBtn','♫ 再玩一局'],['#winCloseBtn','查看最後的牌面']
+ ['#playAgainBtn','↻ 再玩一局 · 同樣玩家'],['#newPlayersBtn','👥 新遊戲 · 新玩家'],['#winCloseBtn','查看最後的牌面']
 ];
 const SETTINGS_ZH=[
  '如何出牌？','有幾位小朋友一起玩？','玩家名稱','遊戲長度','音樂難度',
@@ -834,7 +876,8 @@ function syncLiveLanguage(){
    $('helptext').textContent=tx('¡Ha llegado a 0 cartas!','手牌已經出完了！');
    $('footerInfo').textContent=tx('Ganador: '+p.name+' · 0 cartas','贏家：'+p.name+' · 0 張牌');
    $('winTitle').textContent=tx('¡'+p.name+' HA GANADO!',p.name+' 獲勝！');
-   $('winText').textContent=tx('¡Buen oído y cero cartas! La partida ha terminado.','聽力真棒！手牌清空，遊戲結束。');
+   $('winText').textContent=tx('¡Buen oído! Victoria número '+(p.wins||0)+' para '+p.name+'.','好耳力！'+p.name+' 累計贏得 '+(p.wins||0)+' 局。');
+   renderWinScoreboard();
   }
  }
  if(state.phase==='setup'||picture.classList.contains('cover')){
@@ -867,11 +910,18 @@ function populateSettings(){for(let n=2;n<=8;n++){const b=document.createElement
  for(let i=0;i<8;i++){const l=document.createElement('label');l.className='name-field';l.innerHTML=`<span class="name-dot" style="background:${COLORS[i].main}"></span><input maxlength="16" aria-label="${tx('Nombre del jugador ','玩家名稱 ')}${i+1}" value="${playerLabel(i)}">`;$('nameFields').appendChild(l);}showNames();}
 function showNames(){[...$('nameFields').children].forEach((e,i)=>e.hidden=i>=state.count);[...$('countChoices').children].forEach(b=>b.classList.toggle('selected',Number(b.dataset.num)===state.count));}
 function nextActive(start){for(let i=0;i<state.players.length;i++){const idx=(start+i)%state.players.length;if(state.players[idx].hand.length>0)return idx;}return -1;}
-function createPlayers(){let deck=buildDeck();state.players=[];const names=[...$('nameFields').querySelectorAll('input')];for(let i=0;i<state.count;i++){
- if(deck.length<state.cards)deck.push(...buildDeck());state.players.push({id:i,name:names[i].value.trim().slice(0,16)||playerLabel(i),color:COLORS[i],hand:deck.splice(0,state.cards),zone:null});}}
+function createPlayers(keepRoster=false){
+ let deck=buildDeck();const previous=keepRoster?state.players.slice():[];
+ state.players=[];const names=[...$('nameFields').querySelectorAll('input')];
+ for(let i=0;i<state.count;i++){
+  if(deck.length<state.cards)deck.push(...buildDeck());
+  const old=previous[i],name=old?old.name:(names[i].value.trim().slice(0,16)||playerLabel(i));
+  state.players.push({id:i,name,color:COLORS[i],hand:deck.splice(0,state.cards),wins:old?(old.wins||0):0,zone:null});
+ }
+}
 function renderPlayers(){zones.replaceChildren();for(const p of state.players){const btn=document.createElement('button');btn.type='button';btn.className='player-zone';btn.dataset.seat=p.id;
  btn.style.setProperty('--accent',p.color.main);btn.style.setProperty('--light',p.color.light);
- btn.innerHTML=`<span class="player-name"></span><span class="player-count-row"><span class="player-count"><strong class="card-total">0</strong><small class="card-unit">cartas</small></span><span class="player-symbol" aria-hidden="true"><span class="deck-card"></span></span></span><span class="player-cue">MI TURNO</span>`;
+ btn.innerHTML=`<span class="player-name"></span><span class="player-wins" aria-live="polite">🏆 0</span><span class="player-count-row"><span class="player-count"><strong class="card-total">0</strong><small class="card-unit">cartas</small></span><span class="player-symbol" aria-hidden="true"><span class="deck-card"></span></span></span><span class="player-cue">MI TURNO</span>`;
  btn.querySelector('.player-name').textContent=p.name;
  btn.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();press(p.id);},{passive:false});
  btn.addEventListener('click',e=>{if(e.detail===0)press(p.id);});btn.addEventListener('contextmenu',e=>e.preventDefault());zones.appendChild(btn);p.zone=btn;}
@@ -884,6 +934,7 @@ function layoutSeats(){const portrait=window.matchMedia('(orientation: portrait)
  p.zone.dataset.side=left?'left':'right';p.zone.style.left=left?'1%':'auto';p.zone.style.right=left?'auto':'1%';p.zone.style.width='';p.zone.style.top=`${((row+.5)/n)*100}%`;p.zone.style.height=`calc(${100/n}% - 13px)`;}
  }}
 function refreshZones(){board.classList.toggle('auto-draw',state.autoDraw);board.classList.toggle('awaiting-draw',state.phase==='ready');for(const p of state.players){if(!p.zone)continue;const z=p.zone;const hand=p.hand.length;
+  z.querySelector('.player-wins').textContent='🏆 '+(p.wins||0);z.querySelector('.player-wins').setAttribute('aria-label',tx('Victorias: ','勝場：')+(p.wins||0));
   z.querySelector('.card-total').textContent=hand;z.querySelector('.card-unit').textContent=tx(hand===1?'carta':'cartas','張牌');z.classList.toggle('empty',hand===0);z.classList.toggle('champion',state.phase==='won'&&p.id===state.winnerId);z.classList.toggle('penalty',state.phase==='result'&&p.id===state.penaltyId);z.classList.toggle('first',state.phase==='result'&&p.id===state.fastestId);
  z.classList.toggle('is-turn',state.phase==='ready'&&state.turn===p.id);
  z.classList.remove('can-react');
@@ -1061,16 +1112,32 @@ function makeConfetti(){const layer=$('winConfetti');layer.replaceChildren();
  }
  layer.appendChild(fragment);
 }
+function renderWinScoreboard(){
+ const wrap=$('winScoreboard');wrap.replaceChildren();
+ const title=document.createElement('div');title.className='wins-title';
+ title.textContent=tx('VICTORIAS ACUMULADAS','累計勝場')+' · '+tx('Partidas: ','局數：')+state.roundsWon;
+ wrap.appendChild(title);
+ const list=document.createElement('div');list.className='wins-list';
+ for(const p of state.players){
+  const item=document.createElement('div');item.className='wins-item';
+  if(p.id===state.winnerId)item.classList.add('wins-current');
+  const name=document.createElement('span');name.textContent=p.name;
+  const wins=document.createElement('strong');wins.textContent='🏆 '+(p.wins||0);
+  item.append(name,wins);list.appendChild(item);
+ }
+ wrap.appendChild(list);
+}
 function declareWinner(id){if(state.phase==='won')return;
  resetClocks();state.phase='won';state.winnerId=id;musicStop();const p=state.players[id];
+ p.wins=(p.wins||0)+1;state.roundsWon++;
  $('turnCaption').textContent='🏆 ¡PARTIDA TERMINADA!';$('spokenWord').textContent=p.name.toUpperCase();
  $('status').textContent=`🎉 ¡${p.name} HA GANADO!`;$('status').className='status hot';
  $('helptext').textContent='¡Ha llegado a 0 cartas!';$('footerInfo').textContent=`Ganador: ${p.name} · 0 cartas`;
  $('winTitle').textContent=`¡${p.name} HA GANADO!`;
  $('winText').textContent='¡Buen oído y cero cartas! La partida ha terminado.';
- refreshZones();syncLiveLanguage();makeConfetti();overlay('winOverlay',true);playVictoryFanfare();
+ refreshZones();syncLiveLanguage();renderWinScoreboard();makeConfetti();overlay('winOverlay',true);playVictoryFanfare();
 }
-function initGame(){state.notePool=getPool();if(state.mode==='hard'&&new Set(state.notePool.map(n=>n.midi)).size!==MAX_SOUNDS){toast(tx('Selecciona exactamente 5 sonidos.','請選擇剛好 5 個不同音高。'),2200);return;}resetClocks();stopVictory();++state.animationId;state.special=false;state.voice=false;state.music=false;musicStop();createPlayers();state.pile=[];state.turn=0;state.wordIndex=0;state.multiPenalty=false;state.penaltyRecipients=[];state.phase='ready';state.currentCard=null;state.winnerId=-1;
+function initGame(keepRoster=false){state.notePool=getPool();if(state.mode==='hard'&&new Set(state.notePool.map(n=>n.midi)).size!==MAX_SOUNDS){toast(tx('Selecciona exactamente 5 sonidos.','請選擇剛好 5 個不同音高。'),2200);return;}resetClocks();stopVictory();++state.animationId;state.special=false;state.voice=false;state.music=false;musicStop();if(!keepRoster)state.roundsWon=0;createPlayers(keepRoster);state.pile=[];state.turn=0;state.wordIndex=0;state.multiPenalty=false;state.penaltyRecipients=[];state.phase='ready';state.currentCard=null;state.winnerId=-1;
  picture.className='picture-card cover';picture.removeAttribute('data-type');$('cardEmoji').textContent='♫';$('cardLabel').textContent=tx('¿QUÉ NOTA ES?','這是什麼音？');pileText();overlay('setupOverlay',false);overlay('winOverlay',false);
  renderPlayers();showNextTurn();$('modeInfo').textContent=modeText();initAudio();}
 function newGameSetup(){resetClocks();stopVictory();++state.animationId;musicStop();state.phase='setup';overlay('winOverlay',false);overlay('setupOverlay',true);syncLiveLanguage();}
@@ -1083,8 +1150,8 @@ $('drawModeChoices').addEventListener('click',e=>{
 });
 $('countChoices').addEventListener('click',e=>{const b=e.target.closest('button[data-num]');if(!b)return;state.count=Number(b.dataset.num);showNames();});
 $('speedChoices').addEventListener('click',e=>{const b=e.target.closest('button[data-cards]');if(!b)return;state.cards=Number(b.dataset.cards);[...$('speedChoices').querySelectorAll('button')].forEach(x=>x.classList.toggle('selected',Number(x.dataset.cards)===state.cards));});
-$('startBtn').addEventListener('click',initGame);$('rulesBtn').addEventListener('click',showRules);$('setupRulesBtn').addEventListener('click',showRules);$('closeRulesBtn').addEventListener('click',hideRules);
-$('restartBtn').addEventListener('click',newGameSetup);$('playAgainBtn').addEventListener('click',initGame);$('winCloseBtn').addEventListener('click',()=>overlay('winOverlay',false));
+$('startBtn').addEventListener('click',()=>initGame(false));$('rulesBtn').addEventListener('click',showRules);$('setupRulesBtn').addEventListener('click',showRules);$('closeRulesBtn').addEventListener('click',hideRules);
+$('restartBtn').addEventListener('click',newGameSetup);$('playAgainBtn').addEventListener('click',()=>initGame(true));$('newPlayersBtn').addEventListener('click',newGameSetup);$('winCloseBtn').addEventListener('click',()=>overlay('winOverlay',false));
 $('replayBtn').addEventListener('click',()=>{if((state.phase==='card'||state.phase==='reaction')&&state.currentWord)playPianoNote(state.currentWord);else toast(tx('Saca una carta para escuchar su nota.','請先出牌，再試聽音符。'));});
 $('practiceNotes').addEventListener('click',e=>{const b=e.target.closest('button[data-note]');if(!b)return;playPianoNote(b.dataset.note);});
 $('fullBtn').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch(e){toast(tx('Tu navegador no permite pantalla completa.','你的瀏覽器不支援全螢幕模式。'));}});
