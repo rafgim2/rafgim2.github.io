@@ -1021,16 +1021,20 @@ function showCard(type){
  picture.className='picture-card';picture.dataset.type=state.clef==='bass'?type.replace(/^b/,'').replace(/[0-9]+$/,''):type;
  picture.classList.add('pop');
  picture.classList.toggle('note-only',!state.showCardName);
- const x=152,y=note.y,bass=state.clef==='bass';
+ const bass=state.clef==='bass',x=bass?152:164,y=note.y;
  const lines=(bass?[59,83,107,131,155]:[22,46,70,94,118]).map(yy=>
   '<line x1="18" y1="'+yy+'" x2="225" y2="'+yy+'" />').join('');
  const ledger=(bass&&y===35)||(!bass&&y>=142)?
   '<line x1="'+(x-26)+'" y1="'+(bass?35:142)+'" x2="'+(x+26)+'" y2="'+(bass?35:142)+'" stroke="#182e50" stroke-width="2.8" />':'';
  // La clave de FA se dibuja vectorialmente y sus dos puntos enmarcan FA3 (y=83).
+ // Clave de SOL fiel a la grafía musical, alineada con SOL4 (segunda línea desde abajo).
+ // Trazado vectorial del glifo U+1D11E de Noto Music (SIL Open Font License).
+ const trebleClef='<g transform="matrix(0.08660508 0 0 -0.08660508 25.66975 116.53118)" fill="#182e50">'+
+  '<path d="M314 801Q300 854 291.0 906.0Q282 958 282 1012Q282 1059 288.5 1100.5Q295 1142 307 1177Q320 1217 341.0 1252.5Q362 1288 385.5 1311.0Q409 1334 427 1334Q451 1334 493 1249Q514 1206 524.0 1156.0Q534 1106 534 1049Q534 978 515.0 907.5Q496 837 459.5 775.0Q423 713 372 666L407 498Q422 500 432.0 501.0Q442 502 447 502Q508 502 556.0 467.5Q604 433 632.5 377.0Q661 321 661 254Q661 177 621.5 115.5Q582 54 503 25Q508 8 532 -117Q538 -147 541.0 -164.5Q544 -182 545.0 -195.0Q546 -208 546 -225Q546 -275 521.5 -314.5Q497 -354 455.5 -376.0Q414 -398 363 -398Q311 -398 271.0 -378.5Q231 -359 208.0 -324.5Q185 -290 185 -245Q185 -197 211.5 -165.0Q238 -133 287 -133Q329 -133 355.5 -163.5Q382 -194 382 -236Q382 -272 357.0 -299.0Q332 -326 292 -326H282Q308 -365 364 -365Q433 -365 472.0 -320.0Q511 -275 511 -205Q511 -188 507.0 -159.5Q503 -131 493 -91Q483 -51 477.5 -25.0Q472 1 470 12Q436 2 390 2Q304 2 222 52Q142 102 96.0 184.0Q50 266 50 361Q50 451 91 530Q132 609 192.5 675.0Q253 741 314 801ZM341 826Q364 838 390.0 870.5Q416 903 440.0 945.0Q464 987 479.0 1029.5Q494 1072 494 1106Q494 1142 483.0 1163.0Q472 1184 445 1184Q421 1184 398.5 1162.0Q376 1140 358.5 1103.5Q341 1067 331.0 1022.0Q321 977 321 930Q321 898 327.5 872.0Q334 846 341 826ZM398 379Q371 373 347.0 353.5Q323 334 308.5 306.5Q294 279 294 248Q294 223 307.0 196.5Q320 170 339 154Q352 142 365 136Q380 129 380 123Q380 120 370 117Q332 126 301.5 151.0Q271 176 253.5 211.5Q236 247 236 287Q236 330 253.5 370.0Q271 410 302.5 442.0Q334 474 374 490L345 641Q229 547 174.5 456.5Q120 366 120 277Q120 212 154.0 156.0Q188 100 247.0 65.5Q306 31 380 31Q400 31 420.5 35.0Q441 39 464 45ZM495 55Q593 97 593 227Q593 270 571.0 305.5Q549 341 512.0 362.0Q475 383 429 383Z"/></g>';
  const clef=bass?
   '<g fill="none" stroke="#182e50" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">'+
   '<path d="M43 85 C34 73 26 81 30 89 C34 95 42 88 40 83 C50 83 54 94 50 106 C46 119 37 129 25 134"/>'+
-  '</g><circle cx="72" cy="71" r="4.3" fill="#182e50"/><circle cx="72" cy="95" r="4.3" fill="#182e50"/>':'';
+  '</g><circle cx="72" cy="71" r="4.3" fill="#182e50"/><circle cx="72" cy="95" r="4.3" fill="#182e50"/>':trebleClef;
  let accidental='';
  // Alteraciones musicales vectoriales, a la IZQUIERDA de la cabeza.
  // Las líneas horizontales del sostenido cruzan la altura de la nota.
