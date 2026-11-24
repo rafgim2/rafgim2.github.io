@@ -439,6 +439,22 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
 .win-scoreboard .wins-item strong{color:#ffe18c;flex:none;font-size:1.15em}
 .win-scoreboard .wins-item.wins-current{outline:2px solid #fbd77c;background:#3c4263}
 @media(max-width:680px){.win-scoreboard{padding:7px}.win-scoreboard .wins-item{padding:5px;font-size:12px}}
+
+/* Autoría y acceso al canal de música, en una segunda línea discreta. */
+.bottom{flex-direction:column;gap:2px;padding:4px 8px 5px}
+.bottom-main{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;line-height:1.15}
+.game-credit{font-size:11px;font-weight:700;line-height:1.18;color:#b7c9e4;white-space:nowrap}
+.game-credit a{color:#8be8dc;text-decoration:none;text-underline-offset:2px}
+.game-credit a:hover,.game-credit a:focus-visible{text-decoration:underline}
+@media(max-width:680px),(orientation:portrait){
+ .bottom{gap:2px;padding:3px 6px}
+ .bottom-main{gap:5px;font-size:10px}
+ .game-credit{font-size:10px}
+}
+@media(max-height:620px) and (orientation:landscape){
+ .bottom{gap:1px;padding:2px 6px 3px}
+ .game-credit{font-size:9px;line-height:1}
+}
 </style>
 </head>
 <body>
@@ -465,7 +481,10 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
   </section>
 
  </main>
- <footer class="bottom"><span id="footerInfo">Pulsa tu zona cuando sea tu turno para sacar una carta.</span><span class="pill" id="modeInfo">Sencillo · DO–SOL</span></footer>
+ <footer class="bottom">
+  <div class="bottom-main"><span id="footerInfo">Pulsa tu zona cuando sea tu turno para sacar una carta.</span><span class="pill" id="modeInfo">Sencillo · DO–SOL</span></div>
+  <div class="game-credit">© By Rafael Gimeno · <a href="https://www.youtube.com/@rafgim" target="_blank" rel="noopener noreferrer" aria-label="Canal de YouTube de Rafael Gimeno">YouTube @rafgim</a></div>
+ </footer>
 </div>
 <div class="overlay" id="setupOverlay" role="dialog" aria-modal="true" aria-label="Preparar partida">
  <div class="modal">
