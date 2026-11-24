@@ -455,6 +455,30 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
  .bottom{gap:1px;padding:2px 6px 3px}
  .game-credit{font-size:9px;line-height:1}
 }
+/* Firma más separada de la información de la partida y al pie de los ajustes. */
+.bottom{gap:6px;padding-bottom:8px}
+.bottom .game-credit{margin-top:6px}
+.game-credit a,.setup-game-credit a{color:#8be8dc;text-decoration:none;text-underline-offset:3px}
+.game-credit a:hover,.game-credit a:focus-visible,
+.setup-game-credit a:hover,.setup-game-credit a:focus-visible{text-decoration:underline}
+.setup-game-credit{
+ margin:18px auto 0;
+ padding:13px 5px 4px;
+ text-align:center;
+ border-top:1px solid #8ba6e244;
+ font-size:13px;
+ font-weight:750;
+ line-height:1.4;
+}
+@media(max-width:680px),(orientation:portrait){
+ .bottom{gap:4px;padding-bottom:6px}
+ .bottom .game-credit{margin-top:4px}
+ .setup-game-credit{margin-top:16px;padding-top:11px;font-size:12px}
+}
+@media(max-height:620px) and (orientation:landscape){
+ .bottom{gap:3px;padding-bottom:4px}
+ .bottom .game-credit{margin-top:3px}
+}
 </style>
 </head>
 <body>
@@ -483,7 +507,7 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
  </main>
  <footer class="bottom">
   <div class="bottom-main"><span id="footerInfo">Pulsa tu zona cuando sea tu turno para sacar una carta.</span><span class="pill" id="modeInfo">Sencillo · DO–SOL</span></div>
-  <div class="game-credit">© By Rafael Gimeno · <a href="https://www.youtube.com/@rafgim" target="_blank" rel="noopener noreferrer" aria-label="Canal de YouTube de Rafael Gimeno">YouTube @rafgim</a></div>
+  <div class="game-credit"><a href="https://www.youtube.com/@rafgim" target="_blank" rel="noopener noreferrer" aria-label="Visitar el canal de Rafael Gimeno">© By Rafael Gimeno</a></div>
  </footer>
 </div>
 <div class="overlay" id="setupOverlay" role="dialog" aria-modal="true" aria-label="Preparar partida">
@@ -537,6 +561,7 @@ html[lang="zh-TW"] .player-zone.is-turn::after{content:"👆 點這裡！"}
    <div class="practice" aria-label="Escuchar notas de referencia"><div class="setting-title">Escucha las notas antes de jugar</div><div class="practice-notes" id="practiceNotes"></div><p class="practice-help">Se oyen las mismas alturas que durante la partida. Ajusta el volumen del dispositivo.</p></div>
   <button class="primary" id="startBtn" type="button">¡EMPEZAR PARTIDA! ▶</button>
   <button class="secondary" id="setupRulesBtn" type="button">Ver cómo se juega</button>
+  <div class="setup-game-credit"><a href="https://www.youtube.com/@rafgim" target="_blank" rel="noopener noreferrer" aria-label="Visitar el canal de Rafael Gimeno">© By Rafael Gimeno</a></div>
  </div>
 </div>
 <div class="overlay" id="rulesOverlay" role="dialog" aria-modal="true" aria-label="Reglas" hidden>
