@@ -1,95 +1,109 @@
 {
-  "title": "El baño · 浴室",
+  "title": "Mi amigo monstruo · 我的怪獸朋友",
+  "game": "monster",
+  "date": "2026-11-27",
   "words": [
     [
-      "櫃子",
-      "guì zi",
-      "el armario",
-      "🗄️"
+      "怪獸",
+      "guàishòu",
+      "monstruo",
+      "👾"
     ],
     [
-      "燈",
-      "dēng",
-      "la luz",
-      "💡"
+      "眼睛",
+      "yǎnjīng",
+      "ojos",
+      "👀"
     ],
     [
-      "鏡子",
-      "jìng zi",
-      "el espejo",
-      "🪞"
+      "鼻子",
+      "bízi",
+      "nariz",
+      "👃"
     ],
     [
-      "吹風機",
-      "chuī fēng jī",
-      "el secador de pelo",
-      "🫧"
+      "耳朵",
+      "ěrduo",
+      "orejas",
+      "👂"
     ],
     [
-      "蓮蓬頭",
-      "lián péng tóu",
-      "la ducha",
-      "🚿"
+      "嘴巴",
+      "zuǐba",
+      "boca",
+      "👄"
     ],
     [
-      "浴簾",
-      "yù lián",
-      "la cortina de ducha",
-      "🫧"
+      "一",
+      "yī",
+      "uno",
+      "1️⃣"
     ],
     [
-      "毛巾",
-      "máo jīn",
-      "la toalla",
-      "🫧"
+      "二",
+      "èr",
+      "dos",
+      "2️⃣"
     ],
     [
-      "水龍頭",
-      "shuǐ lóng tóu",
-      "el grifo",
-      "🫧"
+      "兩",
+      "liǎng",
+      "dos (con clasificadores)",
+      "2️⃣"
     ],
     [
-      "肥皂",
-      "féi zào",
-      "el jabón",
-      "🧼"
+      "三",
+      "sān",
+      "tres",
+      "3️⃣"
     ],
     [
-      "馬桶",
-      "mǎ tǒng",
-      "el inodoro",
-      "🚽"
+      "四",
+      "sì",
+      "cuatro",
+      "4️⃣"
     ],
     [
-      "衛生紙",
-      "wèi shēng zhǐ",
-      "el papel higiénico",
-      "🧻"
+      "五",
+      "wǔ",
+      "cinco",
+      "5️⃣"
     ],
     [
-      "洗手台",
-      "xǐ shǒu tái",
-      "el lavabo",
-      "🫧"
+      "紅色",
+      "hóng sè",
+      "rojo",
+      "🔴"
     ],
     [
-      "浴缸",
-      "yù gāng",
-      "la bañera",
-      "🛁"
+      "黃色",
+      "huáng sè",
+      "amarillo",
+      "🟡"
     ],
     [
-      "垃圾桶",
-      "lā jī tǒng",
-      "la papelera",
-      "🫧"
+      "藍色",
+      "lán sè",
+      "azul",
+      "🔵"
     ],
     [
-      "浴室地墊",
-      "yù shì dì diàn",
-      "la alfombrilla de baño",
-      "🫧"
+      "綠色",
+      "lǜ sè",
+      "verde",
+      "🟢"
+    ],
+    [
+      "粉紅色",
+      "fěn hóng sè",
+      "rosa",
+      "🩷"
+    ],
+    [
+      "紫色",
+      "zǐ sè",
+      "morado",
+      "🟣"
     ]
   ]
 }
